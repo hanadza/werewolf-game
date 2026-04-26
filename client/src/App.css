@@ -1,0 +1,315 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  color: white;
+}
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.card {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 24px;
+  padding: 40px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 2.2rem;
+  background: linear-gradient(45deg, #e94560, #f39c12);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+h3 { margin: 12px 0; font-size: 1rem; opacity: 0.9; }
+label { font-size: 0.85rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
+
+input {
+  width: 100%;
+  padding: 13px 16px;
+  margin: 8px 0;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.9);
+  color: #1a1a2e;
+  font-size: 15px;
+}
+
+input:focus { outline: none; border-color: #e94560; }
+
+button {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(45deg, #e94560, #f39c12);
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(233,69,96,0.4);
+}
+
+button:disabled { background: rgba(255,255,255,0.2); cursor: not-allowed; }
+
+hr { border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 20px 0; }
+
+.error {
+  background: rgba(233,69,96,0.3);
+  border: 1px solid #e94560;
+  padding: 12px; border-radius: 10px;
+  margin: 10px 0; text-align: center;
+}
+
+.room-code-box {
+  text-align: center; margin: 20px 0;
+  padding: 20px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 16px;
+}
+
+.room-code-box p { opacity: 0.7; margin-bottom: 10px; }
+
+.code {
+  display: inline-block;
+  background: linear-gradient(45deg, #e94560, #f39c12);
+  padding: 10px 30px;
+  border-radius: 10px;
+  font-family: monospace;
+  font-size: 2rem;
+  font-weight: bold;
+  letter-spacing: 5px;
+}
+
+.players { list-style: none; max-height: 280px; overflow-y: auto; margin-top: 8px; }
+.players li {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.07);
+  margin: 5px 0; border-radius: 10px;
+}
+.players li.dead { opacity: 0.4; }
+
+.badge {
+  background: #f39c12; color: #1a1a2e;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: bold;
+}
+.dead-badge { background: #e94560; color: white; }
+
+.role-info { margin: 16px 0; }
+.role-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.tag {
+  padding: 6px 14px; border-radius: 20px;
+  font-size: 13px; font-weight: bold;
+}
+.tag.werewolf { background: rgba(233,69,96,0.3); border: 1px solid #e94560; }
+.tag.seer { background: rgba(155,89,182,0.3); border: 1px solid #9b59b6; }
+.tag.doctor { background: rgba(46,204,113,0.3); border: 1px solid #2ecc71; }
+.tag.villager { background: rgba(243,156,18,0.3); border: 1px solid #f39c12; }
+
+.start-btn { margin-top: 20px; font-size: 1.1rem; padding: 16px; }
+
+/* ====== GAME LAYOUT ====== */
+.game-layout {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  min-height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.left-panel { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.right-panel { width: 320px; display: flex; flex-direction: column; gap: 12px; }
+
+.panel-card {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.label {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.role-box { border: 2px solid; text-align: center; }
+.role { font-size: 2rem; font-weight: bold; margin: 8px 0; }
+.role-desc { font-size: 0.9rem; opacity: 0.8; font-style: italic; }
+.teammates {
+  margin-top: 10px; padding: 8px;
+  background: rgba(233,69,96,0.2);
+  border-radius: 8px; font-size: 0.9rem;
+}
+
+.phase-box { text-align: center; }
+.phase-header { font-size: 1.5rem; font-weight: bold; }
+.phase-msg { opacity: 0.8; font-size: 0.9rem; margin-top: 6px; }
+
+.action-box .action-msg { margin-bottom: 10px; font-size: 0.95rem; }
+
+.target-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+
+.target-btn {
+  background: rgba(233,69,96,0.3);
+  border: 1px solid #e94560;
+  color: white; border-radius: 8px;
+  padding: 10px; cursor: pointer;
+  width: 100%; font-size: 14px;
+  transition: all 0.2s;
+}
+
+.target-btn:hover { background: rgba(233,69,96,0.6); transform: translateY(-1px); }
+
+.vote-btn {
+  background: rgba(243,156,18,0.3);
+  border: 1px solid #f39c12;
+  color: white; border-radius: 8px;
+  padding: 10px; cursor: pointer;
+  width: 100%; font-size: 14px;
+  transition: all 0.2s;
+  margin: 4px 0;
+}
+
+.vote-btn:hover { background: rgba(243,156,18,0.6); transform: translateY(-1px); }
+
+.confirmed-box {
+  background: rgba(46,204,113,0.2);
+  border: 1px solid #2ecc71;
+  color: #2ecc71; font-size: 0.9rem;
+}
+
+.seer-box {
+  background: rgba(155,89,182,0.2);
+  border: 1px solid #9b59b6;
+}
+
+.night-result-box {
+  background: rgba(52,73,94,0.4);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.eliminated-box {
+  background: rgba(233,69,96,0.2);
+  border: 1px solid #e94560;
+}
+
+.dead-box {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+  opacity: 0.7;
+}
+
+.vote-tracker { font-size: 0.9rem; }
+.vote-row {
+  display: flex; justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ====== CHAT ====== */
+.chat-panel { display: flex; flex-direction: column; flex: 1; }
+
+.chat-messages {
+  height: 300px;
+  overflow-y: auto;
+  margin: 10px 0;
+  padding: 8px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 10px;
+}
+
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+.chat-messages::-webkit-scrollbar-thumb { background: #e94560; border-radius: 4px; }
+
+.chat-msg {
+  margin: 6px 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.chat-msg.system {
+  background: rgba(255,255,255,0.05);
+  color: #f39c12;
+  font-style: italic;
+  text-align: center;
+}
+
+.chat-msg.normal {
+  background: rgba(255,255,255,0.07);
+}
+
+.chat-msg.werewolf {
+  background: rgba(233,69,96,0.15);
+  border-left: 3px solid #e94560;
+}
+
+.chat-user { font-weight: bold; margin-right: 8px; color: #e94560; }
+.chat-time { float: right; opacity: 0.5; font-size: 0.75rem; }
+
+.chat-input { display: flex; gap: 8px; }
+.chat-input input { margin: 0; flex: 1; }
+.chat-input button { width: auto; padding: 13px 20px; margin: 0; }
+
+.chat-disabled {
+  text-align: center; padding: 10px;
+  opacity: 0.5; font-size: 0.85rem;
+}
+
+/* ====== GAME OVER ====== */
+.winner-banner {
+  text-align: center; padding: 20px;
+  border-radius: 16px; margin: 20px 0;
+  font-size: 1.1rem; font-weight: bold;
+}
+
+.winner-banner.villagers {
+  background: rgba(46,204,113,0.2);
+  border: 2px solid #2ecc71;
+}
+
+.winner-banner.werewolves {
+  background: rgba(233,69,96,0.2);
+  border: 2px solid #e94560;
+}
+
+.role-reveal li {
+  display: flex; justify-content: space-between;
+  padding: 10px 14px;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 768px) {
+  .game-layout { flex-direction: column; }
+  .right-panel { width: 100%; }
+}
