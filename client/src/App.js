@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import './App.css';
 
-const socket = io('http://localhost:5000');
+const socket = io(process.env.REACT_APP_SERVER_URL || 'http://localhost:5000');
 
 function App() {
   const [screen, setScreen] = useState('home');
@@ -100,7 +100,7 @@ function App() {
       setVoteTargets(targets.filter(t => t !== usernameRef.current));
     });
 
-    socket.on('voteUpdate', ({ votes, voted, total }) => {
+    socket.on('voteUpdate', ({ votes }) => {
       setVotes(votes);
     });
 
@@ -171,7 +171,6 @@ function App() {
   const canChat = (phase === 'day' && isAlive) ||
     (phase === 'night' && myRole === 'werewolf' && isAlive);
 
-  // ==================== HOME ====================
   if (screen === 'home') return (
     <div className="container">
       <div className="card">
@@ -201,7 +200,6 @@ function App() {
     </div>
   );
 
-  // ==================== LOBBY ====================
   if (screen === 'lobby') return (
     <div className="container">
       <div className="card">
@@ -238,14 +236,9 @@ function App() {
     </div>
   );
 
-  // ==================== GAME ====================
   if (screen === 'game') return (
     <div className="game-layout">
-
-      {/* LEFT PANEL */}
       <div className="left-panel">
-
-        {/* Role Card */}
         {myRole && (
           <div className="panel-card role-box" style={{ borderColor: getRoleColor(myRole) }}>
             <p className="label">YOUR ROLE</p>
@@ -266,7 +259,6 @@ function App() {
           </div>
         )}
 
-        {/* Phase */}
         <div className="panel-card phase-box">
           <div className="phase-header">
             {phase === 'night' ? '🌙 NIGHT' : '☀️ DAY'} {dayCount}
@@ -274,7 +266,6 @@ function App() {
           {phaseMessage && <p className="phase-msg">{phaseMessage}</p>}
         </div>
 
-        {/* Night Action */}
         {phase === 'night' && nightTargets.length > 0 && isAlive && (
           <div className="panel-card action-box">
             <p className="label">NIGHT ACTION</p>
@@ -289,14 +280,10 @@ function App() {
           </div>
         )}
 
-        {/* Action confirmed */}
         {actionConfirmed && (
-          <div className="panel-card confirmed-box">
-            ✅ {actionConfirmed}
-          </div>
+          <div className="panel-card confirmed-box">✅ {actionConfirmed}</div>
         )}
 
-        {/* Seer result */}
         {seerResult && (
           <div className="panel-card seer-box">
             <p className="label">🔮 SEER VISION</p>
@@ -308,7 +295,6 @@ function App() {
           </div>
         )}
 
-        {/* Night result */}
         {nightResult && (
           <div className="panel-card night-result-box">
             <p className="label">🌅 NIGHT RESULT</p>
@@ -321,7 +307,6 @@ function App() {
           </div>
         )}
 
-        {/* Eliminated info */}
         {eliminatedInfo && (
           <div className="panel-card eliminated-box">
             <p className="label">⚖️ ELIMINATED</p>
@@ -333,7 +318,6 @@ function App() {
           </div>
         )}
 
-        {/* Vote */}
         {phase === 'day' && voteTargets.length > 0 && isAlive && !myVote && (
           <div className="panel-card vote-box">
             <p className="label">🗳️ CAST YOUR VOTE</p>
@@ -354,7 +338,6 @@ function App() {
           </div>
         )}
 
-        {/* Vote tracker */}
         {phase === 'day' && Object.keys(votes).length > 0 && (
           <div className="panel-card vote-tracker">
             <p className="label">📊 VOTE TRACKER</p>
@@ -374,10 +357,7 @@ function App() {
         )}
       </div>
 
-      {/* RIGHT PANEL */}
       <div className="right-panel">
-
-        {/* Players */}
         <div className="panel-card">
           <h3>👥 Players ({players.filter(p => p.isAlive).length} alive)</h3>
           <ul className="players">
@@ -392,11 +372,11 @@ function App() {
           </ul>
         </div>
 
-        {/* Chat */}
         <div className="panel-card chat-panel">
           <h3>
-            💬 Chat {phase === 'night' && myRole === 'werewolf' && '(Werewolf only)'}
-            {phase === 'night' && myRole !== 'werewolf' && '(Night - silent)'}
+            💬 Chat
+            {phase === 'night' && myRole === 'werewolf' && ' (Werewolf only)'}
+            {phase === 'night' && myRole !== 'werewolf' && ' (Night - silent)'}
           </h3>
           <div className="chat-messages">
             {chatMessages.map((msg, i) => (
@@ -431,7 +411,6 @@ function App() {
     </div>
   );
 
-  // ==================== GAME OVER ====================
   if (screen === 'gameover') return (
     <div className="container">
       <div className="card">

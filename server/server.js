@@ -8,10 +8,23 @@ require('dotenv').config();
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
-  cors: { origin: "http://localhost:3000", methods: ["GET", "POST"] }
+  cors: {
+    origin: [
+      "http://localhost:3000",
+      "https://werewolf-game.vercel.app",
+      "https://*.vercel.app"
+    ],
+    methods: ["GET", "POST"]
+  }
 });
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://werewolf-game.vercel.app",
+    "https://*.vercel.app"
+  ]
+}));
 app.use(express.json());
 
 const db = mysql.createPool({
