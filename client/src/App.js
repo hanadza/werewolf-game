@@ -174,7 +174,7 @@ function App() {
   if (screen === 'home') return (
     <div className="container">
       <div className="card">
-        <h1>🐺 Werewolf</h1>
+        <h1>⚖️ Village Trial</h1>
         {error && <div className="error">{error}</div>}
         <div className="section">
           <label>Username</label>

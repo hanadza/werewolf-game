@@ -1,7 +1,7 @@
 {
-  "name": "werewolf-server",
+  "name": "village-trial-server",
   "version": "1.0.0",
-  "description": "Werewolf Game Server",
+  "description": "Village Trial - Game Server",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
