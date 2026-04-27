@@ -8,24 +8,21 @@ require('dotenv').config();
 const app = express();
 const server = http.createServer(app);
 
-// FIX CORS - Allow ALL origins
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+
+app.options('*', cors({ origin: "*" }));
+
 const io = socketIo(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["*"],
     credentials: false
   },
+  allowEIO3: true,
   transports: ['polling', 'websocket']
 });
-
-// FIX CORS Express
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "OPTIONS"],
-  credentials: false
-}));
-
-app.use(express.json());
 
 const db = mysql.createPool({
   host: process.env.DB_HOST || process.env.MYSQLHOST,
@@ -42,6 +39,7 @@ db.getConnection()
   .catch(err => console.error('❌ Database error:', err.message));
 
 app.get('/', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.json({ status: 'Werewolf Server Running!' });
 });
 
@@ -64,8 +62,7 @@ io.on('connection', (socket) => {
         phase: 'lobby',
         votes: {},
         nightActions: {},
-        dayCount: 1,
-        chat: []
+        dayCount: 1
       });
       socket.emit('roomCreated', { roomCode });
       console.log('🏠 Room created:', roomCode);
@@ -261,10 +258,14 @@ function startNightPhase(roomCode) {
 
   room.players.forEach(p => {
     if (!p.isAlive) return;
-    const targets = room.players.filter(x => x.isAlive && x.id !== p.id).map(x => x.username);
+    const targets = room.players
+      .filter(x => x.isAlive && x.id !== p.id)
+      .map(x => x.username);
 
     if (p.role === 'werewolf') {
-      const validTargets = room.players.filter(x => x.isAlive && x.role !== 'werewolf').map(x => x.username);
+      const validTargets = room.players
+        .filter(x => x.isAlive && x.role !== 'werewolf')
+        .map(x => x.username);
       io.to(p.id).emit('nightInstruction', {
         role: 'werewolf',
         message: '🐺 Choose a villager to eliminate!',
@@ -437,7 +438,7 @@ function checkWinCondition(roomCode) {
   }
 
   if (aliveWerewolves.length >= aliveVillagers.length) {
-    endGame(roomCode, 'werewolves', '🐺 Werewolves WIN! They took over the village!');
+    endGame(roomCode, 'werewolves', '🐺 Werewolves WIN! They took over!');
     return true;
   }
 
