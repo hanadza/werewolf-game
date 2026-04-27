@@ -7,31 +7,32 @@ require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
+
+// FIX CORS - Allow ALL origins
 const io = socketIo(server, {
   cors: {
-    origin: [
-      "http://localhost:3000",
-      "https://werewolf-game.vercel.app",
-      "https://*.vercel.app"
-    ],
-    methods: ["GET", "POST"]
-  }
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: false
+  },
+  transports: ['polling', 'websocket']
 });
 
+// FIX CORS Express
 app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "https://werewolf-game.vercel.app",
-    "https://*.vercel.app"
-  ]
+  origin: "*",
+  methods: ["GET", "POST", "OPTIONS"],
+  credentials: false
 }));
+
 app.use(express.json());
 
 const db = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+  host: process.env.DB_HOST || process.env.MYSQLHOST,
+  user: process.env.DB_USER || process.env.MYSQLUSER,
+  password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD,
+  database: process.env.DB_NAME || process.env.MYSQLDATABASE,
+  port: process.env.DB_PORT || process.env.MYSQLPORT || 3306
 });
 
 const rooms = new Map();
@@ -40,17 +41,13 @@ db.getConnection()
   .then(() => console.log('✅ Database connected!'))
   .catch(err => console.error('❌ Database error:', err.message));
 
-app.get('/', (req, res) => res.json({ status: 'Werewolf Server Running!' }));
+app.get('/', (req, res) => {
+  res.json({ status: 'Werewolf Server Running!' });
+});
 
-// ============================================================
-// SOCKET EVENTS
-// ============================================================
 io.on('connection', (socket) => {
   console.log('🔌 Connected:', socket.id);
 
-  // --------------------------
-  // CREATE ROOM
-  // --------------------------
   socket.on('createRoom', async (data) => {
     try {
       const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -71,14 +68,13 @@ io.on('connection', (socket) => {
         chat: []
       });
       socket.emit('roomCreated', { roomCode });
+      console.log('🏠 Room created:', roomCode);
     } catch (error) {
+      console.error('Error createRoom:', error);
       socket.emit('gameError', { message: error.message });
     }
   });
 
-  // --------------------------
-  // JOIN ROOM
-  // --------------------------
   socket.on('joinRoom', ({ roomCode, username }) => {
     const room = rooms.get(roomCode);
     if (!room) return socket.emit('gameError', { message: 'Room not found!' });
@@ -103,9 +99,6 @@ io.on('connection', (socket) => {
     console.log(`👤 ${username} joined ${roomCode}`);
   });
 
-  // --------------------------
-  // START GAME
-  // --------------------------
   socket.on('startGame', (roomCode) => {
     const room = rooms.get(roomCode);
     if (!room || room.players.length < 3) {
@@ -135,9 +128,6 @@ io.on('connection', (socket) => {
     startNightPhase(roomCode);
   });
 
-  // --------------------------
-  // NIGHT ACTION
-  // --------------------------
   socket.on('nightAction', ({ roomCode, targetUsername }) => {
     const room = rooms.get(roomCode);
     if (!room || room.phase !== 'night') return;
@@ -148,18 +138,10 @@ io.on('connection', (socket) => {
     room.nightActions[player.role] = room.nightActions[player.role] || {};
     room.nightActions[player.role][player.username] = targetUsername;
 
-    console.log(`🌙 Night action: ${player.username} (${player.role}) -> ${targetUsername}`);
-
-    // Confirm to player
     socket.emit('actionConfirmed', { message: `Action confirmed: targeting ${targetUsername}` });
-
-    // Check if all night actions done
     checkNightComplete(roomCode);
   });
 
-  // --------------------------
-  // DAY VOTE
-  // --------------------------
   socket.on('castVote', ({ roomCode, targetUsername }) => {
     const room = rooms.get(roomCode);
     if (!room || room.phase !== 'day') return;
@@ -168,7 +150,6 @@ io.on('connection', (socket) => {
     if (!player || !player.isAlive) return;
 
     room.votes[player.username] = targetUsername;
-    console.log(`🗳️ Vote: ${player.username} -> ${targetUsername}`);
 
     const alivePlayers = room.players.filter(p => p.isAlive);
     const voteCount = Object.keys(room.votes).length;
@@ -186,9 +167,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // --------------------------
-  // CHAT
-  // --------------------------
   socket.on('sendChat', ({ roomCode, message }) => {
     const room = rooms.get(roomCode);
     if (!room) return;
@@ -196,8 +174,6 @@ io.on('connection', (socket) => {
     const player = room.players.find(p => p.id === socket.id);
     if (!player) return;
 
-    // Only alive players can chat during day
-    // Werewolves can chat at night among themselves
     if (room.phase === 'night' && player.role === 'werewolf' && player.isAlive) {
       const werewolves = room.players.filter(p => p.role === 'werewolf');
       werewolves.forEach(w => {
@@ -221,9 +197,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // --------------------------
-  // DISCONNECT
-  // --------------------------
   socket.on('disconnect', () => {
     const roomCode = socket.roomCode;
     if (roomCode) {
@@ -237,10 +210,6 @@ io.on('connection', (socket) => {
     console.log('🔌 Disconnected:', socket.id);
   });
 });
-
-// ============================================================
-// GAME LOGIC FUNCTIONS
-// ============================================================
 
 function assignRoles(count) {
   const roles = [];
@@ -285,12 +254,11 @@ function startNightPhase(roomCode) {
   io.to(roomCode).emit('phaseChange', {
     phase: 'night',
     dayCount: room.dayCount,
-    message: '🌙 Night falls... Werewolves, Seer, and Doctor take action!'
+    message: '🌙 Night falls... Special roles take action!'
   });
 
-  broadcastChat(roomCode, `🌙 Night ${room.dayCount} begins. Special roles take action!`, 'system');
+  broadcastChat(roomCode, `🌙 Night ${room.dayCount} begins!`, 'system');
 
-  // Send instructions to each role
   room.players.forEach(p => {
     if (!p.isAlive) return;
     const targets = room.players.filter(x => x.isAlive && x.id !== p.id).map(x => x.username);
@@ -319,7 +287,6 @@ function startNightPhase(roomCode) {
     }
   });
 
-  // Auto advance night after 30 seconds
   setTimeout(() => {
     if (rooms.get(roomCode)?.phase === 'night') {
       resolveNight(roomCode);
@@ -349,29 +316,17 @@ function resolveNight(roomCode) {
   const room = rooms.get(roomCode);
   if (!room || room.phase !== 'night') return;
 
-  const nightActions = room.nightActions;
-
-  // Get werewolf target (majority vote if multiple werewolves)
-  const werewolfVotes = nightActions['werewolf'] || {};
+  const werewolfVotes = room.nightActions['werewolf'] || {};
   const werewolfTarget = getMajorityVote(Object.values(werewolfVotes));
-
-  // Get doctor target
-  const doctorActions = nightActions['doctor'] || {};
-  const doctorTarget = Object.values(doctorActions)[0];
-
-  // Get seer target
-  const seerActions = nightActions['seer'] || {};
-  const seerTarget = Object.values(seerActions)[0];
+  const doctorTarget = Object.values(room.nightActions['doctor'] || {})[0];
+  const seerTarget = Object.values(room.nightActions['seer'] || {})[0];
 
   let killed = null;
-  let seerResult = null;
 
-  // Seer result (private)
   if (seerTarget) {
     const target = room.players.find(p => p.username === seerTarget);
     const seer = room.players.find(p => p.role === 'seer' && p.isAlive);
     if (target && seer) {
-      seerResult = { target: seerTarget, role: target.role };
       io.to(seer.id).emit('seerResult', {
         target: seerTarget,
         role: target.role,
@@ -380,7 +335,6 @@ function resolveNight(roomCode) {
     }
   }
 
-  // Resolve kill
   if (werewolfTarget && werewolfTarget !== doctorTarget) {
     const targetPlayer = room.players.find(p => p.username === werewolfTarget);
     if (targetPlayer) {
@@ -391,11 +345,10 @@ function resolveNight(roomCode) {
 
   broadcastPlayers(roomCode);
 
-  // Night result messages
   if (killed) {
-    broadcastChat(roomCode, `🌅 Dawn breaks... ${killed} was killed by werewolves! 😱`, 'system');
+    broadcastChat(roomCode, `🌅 Dawn breaks... ${killed} was killed! 😱`, 'system');
   } else {
-    broadcastChat(roomCode, `🌅 Dawn breaks... Everyone survived the night! 🎉`, 'system');
+    broadcastChat(roomCode, `🌅 Dawn breaks... Everyone survived! 🎉`, 'system');
   }
 
   io.to(roomCode).emit('nightResult', {
@@ -404,10 +357,7 @@ function resolveNight(roomCode) {
     players: getPublicPlayers(room)
   });
 
-  // Check win condition
   if (checkWinCondition(roomCode)) return;
-
-  // Start day phase after 3 seconds
   setTimeout(() => startDayPhase(roomCode), 3000);
 }
 
@@ -430,16 +380,15 @@ function startDayPhase(roomCode) {
   io.to(roomCode).emit('phaseChange', {
     phase: 'day',
     dayCount: room.dayCount,
-    message: '☀️ Day begins! Discuss and vote to eliminate a suspect!'
+    message: '☀️ Day begins! Discuss and vote!'
   });
 
-  broadcastChat(roomCode, `☀️ Day ${room.dayCount} begins! Discuss and vote!`, 'system');
+  broadcastChat(roomCode, `☀️ Day ${room.dayCount} begins! Vote to eliminate!`, 'system');
 
   io.to(roomCode).emit('startVoting', {
     targets: alivePlayers.map(p => p.username)
   });
 
-  // Auto advance after 60 seconds
   setTimeout(() => {
     if (rooms.get(roomCode)?.phase === 'day') {
       resolveDayVote(roomCode);
@@ -457,7 +406,7 @@ function resolveDayVote(roomCode) {
     const targetPlayer = room.players.find(p => p.username === eliminated);
     if (targetPlayer) {
       targetPlayer.isAlive = false;
-      broadcastChat(roomCode, `⚖️ The village has decided! ${eliminated} (${targetPlayer.role}) has been eliminated! 🪓`, 'system');
+      broadcastChat(roomCode, `⚖️ ${eliminated} (${targetPlayer.role}) eliminated! 🪓`, 'system');
       io.to(roomCode).emit('playerEliminated', {
         username: eliminated,
         role: targetPlayer.role,
@@ -465,11 +414,10 @@ function resolveDayVote(roomCode) {
       });
     }
   } else {
-    broadcastChat(roomCode, `🤷 No consensus! No one was eliminated today.`, 'system');
+    broadcastChat(roomCode, `🤷 No consensus! No one eliminated.`, 'system');
   }
 
   broadcastPlayers(roomCode);
-
   if (checkWinCondition(roomCode)) return;
 
   room.dayCount++;
@@ -484,12 +432,12 @@ function checkWinCondition(roomCode) {
   const aliveVillagers = room.players.filter(p => p.isAlive && p.role !== 'werewolf');
 
   if (aliveWerewolves.length === 0) {
-    endGame(roomCode, 'villagers', '🏆 Villagers WIN! All werewolves have been eliminated!');
+    endGame(roomCode, 'villagers', '🏆 Villagers WIN! All werewolves eliminated!');
     return true;
   }
 
   if (aliveWerewolves.length >= aliveVillagers.length) {
-    endGame(roomCode, 'werewolves', '🐺 Werewolves WIN! They have taken over the village!');
+    endGame(roomCode, 'werewolves', '🐺 Werewolves WIN! They took over the village!');
     return true;
   }
 
@@ -510,7 +458,6 @@ function endGame(roomCode, winner, message) {
 
   io.to(roomCode).emit('gameOver', { winner, message, roleReveal });
   broadcastChat(roomCode, message, 'system');
-  broadcastChat(roomCode, '📋 All roles revealed above!', 'system');
 }
 
 const PORT = process.env.PORT || 5000;
