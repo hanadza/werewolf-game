@@ -214,6 +214,7 @@ function Timer({ duration, phase, onExpire }) {
       });
     }, 1000);
     return () => clearInterval(intervalRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [duration, phase]);
 
   const percent = (timeLeft / duration) * 100;
@@ -287,6 +288,7 @@ function App() {
   const [isHost, setIsHost] = useState(false);
 
   // ── Room State ──
+  // eslint-disable-next-line no-unused-vars
   const [roomCode, setRoomCode] = useState('');
   const [roomName, setRoomName] = useState('');
   const [maxPlayers, setMaxPlayers] = useState(8);
