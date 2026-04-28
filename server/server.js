@@ -39,11 +39,12 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 // PHASE CONFIG
 // ============================================================
 const PHASE_DURATION = {
-  siang: 60,    // 60 detik - sidang & vote
+  siang: 60,
+  siang_pertama: 30,
   transition_to_senja: 5,
-  senja: 30,    // 30 detik - aksi roles
+  senja: 30,
   transition_to_malam: 5,
-  malam: 15,    // 15 detik - pengumuman
+  malam: 15,
   transition_to_siang: 5
 };
 
@@ -527,10 +528,14 @@ function startSiangPhase(roomCode) {
     ? 'Wilujeng sumping di lembur! Kenalan heula jeung batur saméméh senja datang...'
     : 'Panonpoe caang... Sanekala nyamar jadi warga biasa. Saha anu bisa dipercaya?';
 
+  const siangDuration = isFirstDay
+    ? PHASE_DURATION.siang_pertama
+    : PHASE_DURATION.siang;
+
   io.to(roomCode).emit('phaseChange', {
     phase: 'siang',
     dayCount: room.dayCount,
-    duration: PHASE_DURATION.siang,
+    duration: siangDuration,
     message,
     voteTargets,
     lockedPlayers: room.lockedPlayers,
@@ -563,13 +568,12 @@ function startSiangPhase(roomCode) {
   room.phaseTimer = setTimeout(() => {
     if (rooms.get(roomCode)?.phase === 'siang') {
       if (isFirstDay) {
-        // Hari pertama langsung ke senja tanpa vote
         startTransition(roomCode, 'senja');
       } else {
         resolveSiangVote(roomCode);
       }
     }
-  }, PHASE_DURATION.siang * 1000);
+  }, siangDuration * 1000);
 }
 
 function resolveSiangVote(roomCode) {
