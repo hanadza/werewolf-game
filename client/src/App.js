@@ -1,156 +1,635 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import io from 'socket.io-client';
 import './App.css';
 
 const socket = io(process.env.REACT_APP_SERVER_URL || 'http://localhost:5000');
 
+// ============================================================
+// CONSTANTS
+// ============================================================
+const ROLES = {
+  werewolf: {
+    name: 'Sanekala',
+    emoji: '👹',
+    color: '#e94560',
+    desc: 'Maneh nyaéta Sanekala! Siang nyamar jadi warga biasa. Senja berubah wujud & culik budak!',
+    bg: 'rgba(233,69,96,0.15)',
+    secret: true
+  },
+  seer: {
+    name: 'Dukun',
+    emoji: '🔮',
+    color: '#9b59b6',
+    desc: 'Maneh nyaéta Dukun! Unggal senja, intip jati diri hiji pamain. Maneh bisa ningali wujud asli Sanekala!',
+    bg: 'rgba(155,89,182,0.15)',
+    secret: false
+  },
+  doctor: {
+    name: 'Kolot',
+    emoji: '👴',
+    color: '#2ecc71',
+    desc: 'Maneh nyaéta Kolot! Unggal senja, jaga hiji budak tina culikan Sanekala. Bisa jaga diri sorangan!',
+    bg: 'rgba(46,204,113,0.15)',
+    secret: false
+  },
+  kuncen: {
+    name: 'Kuncen',
+    emoji: '🗝️',
+    color: '#e67e22',
+    desc: 'Maneh nyaéta Kuncen! Kebal 1x tina serangan Sanekala. Bisa ngunci 1 pamain tina sidang!',
+    bg: 'rgba(230,126,34,0.15)',
+    secret: false
+  },
+  ajengan: {
+    name: 'Ajengan',
+    emoji: '🕌',
+    color: '#1abc9c',
+    desc: 'Maneh nyaéta Ajengan! Lindungi warga jeung doa. 1x Ruqyah Massal: Sanekala teu bisa ngalakukeun aksi!',
+    bg: 'rgba(26,188,156,0.15)',
+    secret: false
+  },
+  villager: {
+    name: 'Budak',
+    emoji: '👦',
+    color: '#f39c12',
+    desc: 'Maneh nyaéta Budak! Target utama Sanekala. Gunakeun akal pikeun manggihan Sanekala di antara urang!',
+    bg: 'rgba(243,156,18,0.15)',
+    secret: false
+  }
+};
+
+const PHASES = {
+  siang: {
+    label: 'Beurang - Sidang Lembur',
+    emoji: '☀️',
+    color: '#f39c12',
+    bg: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+    overlayBg: 'rgba(243,156,18,0.05)'
+  },
+  senja: {
+    label: 'Senja - Sanekala Ngaliar',
+    emoji: '🌅',
+    color: '#e67e22',
+    bg: 'linear-gradient(135deg, #2d1b00 0%, #8B4513 40%, #FF6B35 100%)',
+    overlayBg: 'rgba(230,126,34,0.08)'
+  },
+  malam: {
+    label: 'Peuting - Kaayaan Lembur',
+    emoji: '🌙',
+    color: '#9b59b6',
+    bg: 'linear-gradient(135deg, #000000 0%, #0d0d1a 50%, #1a0a2e 100%)',
+    overlayBg: 'rgba(155,89,182,0.08)'
+  }
+};
+
+// Sound Manager
+const sounds = {};
+const soundFiles = ['siang','senja','malam','wolf','eliminated','vote','win','lose','countdown','join','transition'];
+soundFiles.forEach(name => {
+  sounds[name] = new Audio(`/sounds/${name}.mp3`);
+  sounds[name].volume = 0.4;
+  sounds[name].onerror = () => {};
+});
+
+const playSound = (name) => {
+  try {
+    if (sounds[name]) {
+      sounds[name].currentTime = 0;
+      sounds[name].play().catch(() => {});
+    }
+  } catch(e) {}
+};
+
+const stopAllSounds = () => {
+  Object.values(sounds).forEach(s => {
+    try { s.pause(); s.currentTime = 0; } catch(e) {}
+  });
+};
+
+// ============================================================
+// COMPONENTS
+// ============================================================
+
+// ── Countdown Overlay ──
+function CountdownOverlay({ count }) {
+  return (
+    <div className="fullscreen-overlay countdown-overlay">
+      <div className="countdown-content">
+        <div className="countdown-label">Kaulinan Dimimitian</div>
+        <div className="countdown-number" key={count}>{count}</div>
+        <div className="countdown-sub">
+          Siang geus datang... Sanekala nyamar di antara urang!
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Phase Transition Overlay ──
+function TransitionOverlay({ from, to, duration }) {
+  const [progress, setProgress] = useState(0);
+  const phaseData = PHASES[to] || PHASES.siang;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress(prev => Math.min(prev + (100 / (duration * 10)), 100));
+    }, 100);
+    return () => clearInterval(interval);
+  }, [duration]);
+
+  const messages = {
+    siang: '☀️ Panonpoe bijil... Warga ngumpul pikeun bersidang!',
+    senja: '🌅 Azan Maghrib kadéngé... Sanekala mimiti ngaliar!',
+    malam: '🌙 Peuting nutupan lembur... Naon anu kajadian?'
+  };
+
+  return (
+    <div className="fullscreen-overlay transition-overlay"
+      style={{ background: phaseData.bg }}>
+      <div className="transition-content">
+        <div className="transition-emoji">{phaseData.emoji}</div>
+        <div className="transition-label" style={{ color: phaseData.color }}>
+          {phaseData.label}
+        </div>
+        <div className="transition-message">{messages[to]}</div>
+        <div className="transition-bar-bg">
+          <div className="transition-bar-fill"
+            style={{ width: `${progress}%`, background: phaseData.color }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Role Reveal Overlay ──
+function RoleRevealOverlay({ role, teammates, onDone }) {
+  const [visible, setVisible] = useState(false);
+  const roleData = ROLES[role];
+
+  useEffect(() => {
+    setTimeout(() => setVisible(true), 100);
+    const timer = setTimeout(() => onDone(), 5000);
+    return () => clearTimeout(timer);
+  }, [onDone]);
+
+  return (
+    <div className="fullscreen-overlay role-reveal-overlay">
+      <div className={`role-reveal-card ${visible ? 'show' : ''}`}
+        style={{ borderColor: roleData?.color, background: roleData?.bg }}>
+        <div className="role-reveal-pretitle">Peran maneh nyaéta...</div>
+        <div className="role-reveal-emoji">{roleData?.emoji}</div>
+        <div className="role-reveal-name" style={{ color: roleData?.color }}>
+          {roleData?.name}
+        </div>
+        <div className="role-reveal-desc">{roleData?.desc}</div>
+        {teammates?.length > 0 && (
+          <div className="role-reveal-teammates">
+            👹 Batur Sanekala: {teammates.join(', ')}
+          </div>
+        )}
+        <div className="role-reveal-timer">Nutup otomatis...</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Timer Component ──
+function Timer({ duration, phase, onExpire }) {
+  const [timeLeft, setTimeLeft] = useState(duration);
+  const intervalRef = useRef(null);
+  const phaseData = PHASES[phase] || PHASES.siang;
+
+  useEffect(() => {
+    setTimeLeft(duration);
+    clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(intervalRef.current);
+          onExpire?.();
+          return 0;
+        }
+        if (prev <= 10) playSound('countdown');
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(intervalRef.current);
+  }, [duration, phase]);
+
+  const percent = (timeLeft / duration) * 100;
+  const urgent = timeLeft <= 10;
+  const warning = timeLeft <= 20;
+  const timerColor = urgent ? '#e94560' : warning ? '#f39c12' : phaseData.color;
+
+  return (
+    <div className={`timer-box ${urgent ? 'urgent' : ''}`}>
+      <div className="timer-label">
+        {urgent ? '⚠️ Waktu Ampir Béak!' : '⏱️ Sesa Waktu'}
+      </div>
+      <div className="timer-display" style={{ color: timerColor }}>
+        <span className="timer-number">
+          {String(Math.floor(timeLeft / 60)).padStart(2, '0')}:
+          {String(timeLeft % 60).padStart(2, '0')}
+        </span>
+      </div>
+      <div className="timer-bar-bg">
+        <div className="timer-bar-fill"
+          style={{
+            width: `${percent}%`,
+            background: timerColor,
+            transition: 'width 1s linear, background 0.5s'
+          }} />
+      </div>
+    </div>
+  );
+}
+
+// ── Host Monitor Panel ──
+function HostMonitor({ players, hostRoleInfo, phase, dayCount }) {
+  return (
+    <div className="host-monitor">
+      <div className="host-monitor-title">👑 Monitor Host</div>
+      <div className="host-monitor-phase">
+        {PHASES[phase]?.emoji} {PHASES[phase]?.label || phase} - Ronde {dayCount}
+      </div>
+      <div className="host-player-list">
+        {hostRoleInfo.map((p, i) => {
+          const roleData = ROLES[p.role];
+          const playerStatus = players.find(pl => pl.username === p.username);
+          return (
+            <div key={i} className={`host-player-item ${!playerStatus?.isAlive ? 'dead' : ''}`}>
+              <span className="host-player-role">{roleData?.emoji}</span>
+              <span className="host-player-name">{p.username}</span>
+              <span className="host-player-role-name"
+                style={{ color: roleData?.color }}>
+                {roleData?.name}
+              </span>
+              <span className={`host-player-status ${!playerStatus?.isAlive ? 'dead' : 'alive'}`}>
+                {playerStatus?.isAlive ? '●' : '✕'}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// MAIN APP
+// ============================================================
 function App() {
-  const [screen, setScreen] = useState('home');
+  // ── Screen State ──
+  const [screen, setScreen] = useState('landing');
+
+  // ── User State ──
   const [username, setUsername] = useState('');
-  const [roomName, setRoomName] = useState('');
+  const [isHost, setIsHost] = useState(false);
+
+  // ── Room State ──
   const [roomCode, setRoomCode] = useState('');
+  const [roomName, setRoomName] = useState('');
+  const [maxPlayers, setMaxPlayers] = useState(8);
   const [currentRoom, setCurrentRoom] = useState('');
+  const [currentRoomName, setCurrentRoomName] = useState('');
   const [players, setPlayers] = useState([]);
+  const [joinCode, setJoinCode] = useState('');
+
+  // ── Game State ──
   const [myRole, setMyRole] = useState('');
   const [teammates, setTeammates] = useState([]);
+  const [sanekalaList, setSanekalaList] = useState([]);
   const [phase, setPhase] = useState('');
   const [dayCount, setDayCount] = useState(1);
   const [phaseMessage, setPhaseMessage] = useState('');
-  const [error, setError] = useState('');
-  const [chatMessages, setChatMessages] = useState([]);
-  const [chatInput, setChatInput] = useState('');
+  const [phaseDuration, setPhaseDuration] = useState(60);
+
+  // ── Action State ──
   const [nightTargets, setNightTargets] = useState([]);
   const [nightInstruction, setNightInstruction] = useState('');
+  const [nightBlocked, setNightBlocked] = useState(false);
+  const [hasShield, setHasShield] = useState(false);
+  const [kuncenMode, setKuncenMode] = useState('');
+  const [actionConfirmed, setActionConfirmed] = useState('');
+  const [ruqyahAvailable, setRuqyahAvailable] = useState(false);
+  const [ruqyahUsed, setRuqyahUsed] = useState(false);
+
+  // ── Vote State ──
   const [voteTargets, setVoteTargets] = useState([]);
   const [votes, setVotes] = useState({});
   const [myVote, setMyVote] = useState('');
-  const [actionConfirmed, setActionConfirmed] = useState('');
-  const [nightResult, setNightResult] = useState(null);
+  const [lockedPlayers, setLockedPlayers] = useState([]);
+
+  // ── Result State ──
+  const [senjaResult, setSenjaResult] = useState(null);
   const [seerResult, setSeerResult] = useState(null);
-  const [gameOver, setGameOver] = useState(null);
   const [eliminatedInfo, setEliminatedInfo] = useState(null);
+  const [ajenganWasiat, setAjenganWasiat] = useState('');
+
+  // ── UI State ──
+  const [countdown, setCountdown] = useState(null);
+  const [showRoleReveal, setShowRoleReveal] = useState(false);
+  const [transition, setTransition] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [error, setError] = useState('');
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [gameOver, setGameOver] = useState(null);
+
+  // ── Host State ──
+  const [hostRoleInfo, setHostRoleInfo] = useState([]);
+
   const chatEndRef = useRef(null);
   const usernameRef = useRef('');
+  const currentRoomRef = useRef('');
+  const isHostRef = useRef(false);
 
   useEffect(() => { usernameRef.current = username; }, [username]);
+  useEffect(() => { currentRoomRef.current = currentRoom; }, [currentRoom]);
+  useEffect(() => { isHostRef.current = isHost; }, [isHost]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
+  const play = useCallback((name) => {
+    if (soundEnabled) playSound(name);
+  }, [soundEnabled]);
+
+  const showError = (msg) => {
+    setError(msg);
+    setTimeout(() => setError(''), 4000);
+  };
+
+  // ── Socket Events ──
   useEffect(() => {
-    socket.on('roomCreated', ({ roomCode }) => {
+    // Room Events
+    socket.on('roomCreated', ({ roomCode, roomName, maxPlayers }) => {
       setCurrentRoom(roomCode);
-      socket.emit('joinRoom', { roomCode, username: usernameRef.current });
+      setCurrentRoomName(roomName);
+      setMaxPlayers(maxPlayers);
+      setIsHost(true);
+      socket.emit('setHostUsername', { roomCode, username: usernameRef.current });
+      setScreen('lobby');
+      play('join');
     });
 
-    socket.on('roomJoined', ({ roomCode }) => {
+    socket.on('roomJoined', ({ roomCode, roomName }) => {
       setCurrentRoom(roomCode);
+      setCurrentRoomName(roomName);
       setScreen('lobby');
+      play('join');
+    });
+
+    socket.on('roomUpdated', ({ maxPlayers }) => {
+      setMaxPlayers(maxPlayers);
     });
 
     socket.on('playerList', setPlayers);
 
-    socket.on('gameStarted', ({ players, phase, dayCount }) => {
+    socket.on('hostInfo', ({ username }) => {
+      // Host info received
+    });
+
+    socket.on('kicked', ({ message }) => {
+      showError(message);
+      setScreen('landing');
+      setCurrentRoom('');
+      setPlayers([]);
+    });
+
+    socket.on('hostDisconnected', ({ message }) => {
+      showError(message);
+    });
+
+    // Game Events
+    socket.on('gameCountdown', ({ count }) => {
+      setCountdown(count);
+      play('countdown');
+    });
+
+    socket.on('gameStarted', ({ players, dayCount }) => {
       setPlayers(players);
-      setPhase(phase);
       setDayCount(dayCount || 1);
+      setChatMessages([]);
+      setCountdown(null);
       setScreen('game');
     });
 
     socket.on('yourRole', ({ role, teammates }) => {
       setMyRole(role);
       setTeammates(teammates || []);
+      setTimeout(() => {
+        setShowRoleReveal(true);
+        if (role === 'werewolf') play('wolf');
+      }, 500);
     });
 
-    socket.on('phaseChange', ({ phase, dayCount, message }) => {
+    socket.on('hostRoleInfo', ({ players }) => {
+      setHostRoleInfo(players);
+    });
+
+    socket.on('sanekalaList', (list) => {
+      setSanekalaList(list);
+    });
+
+    // Phase Events
+    socket.on('phaseChange', ({ phase, dayCount, duration, message, voteTargets, lockedPlayers, killed, protectedBy, lockedPlayer }) => {
       setPhase(phase);
       setDayCount(dayCount || 1);
-      setPhaseMessage(message);
-      setMyVote('');
-      setVotes({});
-      setNightTargets([]);
-      setNightInstruction('');
+      setPhaseDuration(duration || 60);
+      setPhaseMessage(message || '');
       setActionConfirmed('');
       setSeerResult(null);
-      setNightResult(null);
       setEliminatedInfo(null);
+      setKuncenMode('');
+
+      if (phase === 'siang') {
+        setMyVote('');
+        setVotes({});
+        setVoteTargets(voteTargets || []);
+        setLockedPlayers(lockedPlayers || []);
+        setSenjaResult(null);
+        stopAllSounds();
+        play('siang');
+      }
+
+      if (phase === 'senja') {
+        setNightTargets([]);
+        setNightInstruction('');
+        setNightBlocked(false);
+        stopAllSounds();
+        play('senja');
+      }
+
+      if (phase === 'malam') {
+        setSenjaResult({ killed, protectedBy, lockedPlayer });
+        stopAllSounds();
+        play('malam');
+        if (killed) play('eliminated');
+      }
     });
 
-    socket.on('nightInstruction', ({ message, targets }) => {
+    socket.on('phaseTransition', ({ from, to, duration, data }) => {
+      setTransition({ from, to, duration, data });
+      play('transition');
+      setTimeout(() => setTransition(null), duration * 1000);
+    });
+
+    // Night Events
+    socket.on('nightInstruction', ({ message, targets, blocked, hasShield, ruqyahAvailable }) => {
       setNightInstruction(message);
-      setNightTargets(targets);
+      setNightTargets(targets || []);
+      setNightBlocked(blocked || false);
+      setHasShield(hasShield || false);
+      setRuqyahAvailable(ruqyahAvailable || false);
     });
 
     socket.on('actionConfirmed', ({ message }) => {
       setActionConfirmed(message);
       setNightTargets([]);
+      setNightBlocked(true);
     });
 
-    socket.on('seerResult', ({ target, role, isWerewolf }) => {
-      setSeerResult({ target, role, isWerewolf });
+    socket.on('seerResult', ({ target, role, isSanekala }) => {
+      setSeerResult({ target, role, isSanekala });
     });
 
-    socket.on('nightResult', ({ killed, protected: prot, players }) => {
+    socket.on('senjaResult', ({ killed, protectedBy, lockedPlayer, players }) => {
       setPlayers(players);
-      setNightResult({ killed, protected: prot });
     });
 
-    socket.on('startVoting', ({ targets }) => {
-      setVoteTargets(targets.filter(t => t !== usernameRef.current));
+    socket.on('ruqyahMassalActivated', ({ username, message }) => {
+      setRuqyahUsed(true);
+      setChatMessages(prev => [...prev, {
+        username: 'Lembur',
+        message,
+        type: 'system',
+        timestamp: new Date().toLocaleTimeString()
+      }]);
     });
 
-    socket.on('voteUpdate', ({ votes }) => {
+    socket.on('ajenganRevealed', ({ username, message }) => {
+      showError(message);
+    });
+
+    socket.on('ajenganWasiat', ({ message }) => {
+      setAjenganWasiat(message);
+    });
+
+    // Vote Events
+    socket.on('voteUpdate', ({ votes, lockedPlayers }) => {
       setVotes(votes);
+      setLockedPlayers(lockedPlayers || []);
+      play('vote');
     });
 
     socket.on('playerEliminated', ({ username, role, players }) => {
       setPlayers(players);
       setEliminatedInfo({ username, role });
+      play('eliminated');
     });
 
+    // Chat Events
     socket.on('chatMessage', (msg) => {
       setChatMessages(prev => [...prev, msg]);
     });
 
+    // Game Over Events
     socket.on('gameOver', (data) => {
       setGameOver(data);
+      stopAllSounds();
+      if (data.winner === 'warga') play('win');
+      else play('lose');
       setScreen('gameover');
     });
 
-    socket.on('gameError', ({ message }) => {
-      setError(message);
-      setTimeout(() => setError(''), 4000);
+    socket.on('gameEnded', ({ message }) => {
+      setScreen('lobby');
+      setPhase('');
+      setMyRole('');
+      setGameOver(null);
+      setSenjaResult(null);
+      setChatMessages([]);
+      showError(message);
+    });
+
+    socket.on('gameRestarted', ({ players, message }) => {
+      setPlayers(players);
+      setPhase('');
+      setMyRole('');
+      setGameOver(null);
+      setSenjaResult(null);
+      setChatMessages([]);
+      setScreen('lobby');
+    });
+
+     socket.on('gameError', ({ message }) => {
+      showError(message);
     });
 
     return () => {
-      ['roomCreated','roomJoined','playerList','gameStarted','yourRole',
-       'phaseChange','nightInstruction','actionConfirmed','seerResult',
-       'nightResult','startVoting','voteUpdate','playerEliminated',
-       'chatMessage','gameOver','gameError'].forEach(e => socket.off(e));
+      ['roomCreated','roomJoined','roomUpdated','playerList','hostInfo',
+       'kicked','hostDisconnected','gameCountdown','gameStarted','yourRole',
+       'hostRoleInfo','sanekalaList','phaseChange','phaseTransition',
+       'nightInstruction','actionConfirmed','seerResult','senjaResult',
+       'ruqyahMassalActivated','ajenganRevealed','ajenganWasiat',
+       'voteUpdate','playerEliminated','chatMessage','gameOver',
+       'gameEnded','gameRestarted','gameError'
+      ].forEach(e => socket.off(e));
     };
-  }, []);
+  }, [play]);
 
+  // ── Actions ──
   const createRoom = () => {
-    if (!username || !roomName) return setError('Fill username & room name!');
-    socket.emit('createRoom', { roomName, maxPlayers: 12 });
+    if (!username.trim()) return showError('Eusi ngaran heula!');
+    if (!roomName.trim()) return showError('Eusi ngaran rohangan heula!');
+    socket.emit('createRoom', { roomName, maxPlayers });
   };
 
   const joinRoom = () => {
-    if (!username || !roomCode) return setError('Fill username & room code!');
-    socket.emit('joinRoom', { roomCode: roomCode.toUpperCase(), username });
+    if (!username.trim()) return showError('Eusi ngaran heula!');
+    if (!joinCode.trim()) return showError('Eusi kode rohangan heula!');
+    socket.emit('joinRoom', { roomCode: joinCode.toUpperCase(), username });
   };
 
   const startGame = () => socket.emit('startGame', currentRoom);
 
-  const sendNightAction = (target) => {
-    socket.emit('nightAction', { roomCode: currentRoom, targetUsername: target });
+  const endGame = () => {
+    if (window.confirm('Yakin rék ngakhiran kaulinan?')) {
+      socket.emit('endGame', currentRoom);
+    }
+  };
+
+  const restartGame = () => socket.emit('restartGame', currentRoom);
+
+  const kickPlayer = (username) => {
+    if (window.confirm(`Kick ${username}?`)) {
+      socket.emit('kickPlayer', { roomCode: currentRoom, username });
+    }
+  };
+
+  const sendNightAction = (target, actionType = 'default') => {
+    socket.emit('nightAction', {
+      roomCode: currentRoom,
+      targetUsername: target,
+      actionType
+    });
+    setKuncenMode('');
   };
 
   const castVote = (target) => {
     if (myVote) return;
+    if (lockedPlayers.includes(target)) {
+      return showError(`${target} dikunci ku Kuncen!`);
+    }
     setMyVote(target);
     socket.emit('castVote', { roomCode: currentRoom, targetUsername: target });
+  };
+
+  const activateRuqyah = () => {
+    socket.emit('ruqyahMassal', { roomCode: currentRoom });
+    setRuqyahUsed(true);
   };
 
   const sendChat = () => {
@@ -159,282 +638,927 @@ function App() {
     setChatInput('');
   };
 
-  const getRoleEmoji = (role) => ({
-    werewolf: '🐺', seer: '🔮', doctor: '⚕️', villager: '👨‍🌾'
-  })[role] || '❓';
+  // ── Computed ──
+  const myPlayer = players.find(p => p.username === username);
+  const isAlive = myPlayer?.isAlive ?? true;
+  const roleData = ROLES[myRole];
+  const phaseData = PHASES[phase];
+  const canChat = (phase === 'siang' && isAlive) ||
+    (phase === 'senja' && myRole === 'werewolf' && isAlive);
 
-  const getRoleColor = (role) => ({
-    werewolf: '#e94560', seer: '#9b59b6', doctor: '#2ecc71', villager: '#f39c12'
-  })[role] || '#fff';
-
-  const isAlive = players.find(p => p.username === username)?.isAlive ?? true;
-  const canChat = (phase === 'day' && isAlive) ||
-    (phase === 'night' && myRole === 'werewolf' && isAlive);
-
-  if (screen === 'home') return (
-    <div className="container">
-      <div className="card">
-        <h1>⚖️ Village Trial</h1>
-        {error && <div className="error">{error}</div>}
-        <div className="section">
-          <label>Username</label>
-          <input placeholder="Enter username"
-            value={username} onChange={e => setUsername(e.target.value)} />
-        </div>
-        <hr />
-        <div className="section">
-          <h3>🏠 Create Room</h3>
-          <input placeholder="Room Name"
-            value={roomName} onChange={e => setRoomName(e.target.value)} />
-          <button onClick={createRoom}>Create Room</button>
-        </div>
-        <hr />
-        <div className="section">
-          <h3>🚪 Join Room</h3>
-          <input placeholder="Room Code (e.g. ABC123)"
-            value={roomCode}
-            onChange={e => setRoomCode(e.target.value.toUpperCase())} />
-          <button onClick={joinRoom}>Join Room</button>
-        </div>
-      </div>
-    </div>
+  // ── Render Overlays ──
+  if (countdown !== null) return <CountdownOverlay count={countdown} />;
+  if (transition) return (
+    <TransitionOverlay
+      from={transition.from}
+      to={transition.to}
+      duration={transition.duration}
+    />
   );
 
-  if (screen === 'lobby') return (
-    <div className="container">
-      <div className="card">
-        <h1>🏠 Lobby</h1>
-        <div className="room-code-box">
-          <p>Share this code:</p>
-          <div className="code">{currentRoom}</div>
+  // ============================================================
+  // SCREEN: LANDING
+  // ============================================================
+  if (screen === 'landing') return (
+    <div className="landing-screen">
+      <div className="landing-bg-overlay" />
+
+      <div className="landing-content">
+        {/* Hero */}
+        <div className="landing-hero">
+          <div className="landing-logo">👹</div>
+          <h1 className="landing-title">Village Trial</h1>
+          <p className="landing-subtitle">Saha Sanekala di antara urang?</p>
+          <p className="landing-subtitle-id">Siapakah Sanekala di antara kita?</p>
         </div>
-        {error && <div className="error">{error}</div>}
-        <div className="players-section">
-          <h3>👥 Players ({players.length}/12)</h3>
-          <ul className="players">
-            {players.map((p, i) => (
-              <li key={i}>
-                <span>👤 {p.username}</span>
-                {p.isHost && <span className="badge">Host</span>}
-              </li>
-            ))}
-          </ul>
+
+        {/* Role Preview */}
+        <div className="landing-roles">
+          {Object.entries(ROLES).map(([key, r]) => (
+            <div key={key} className="landing-role-chip"
+              style={{ borderColor: r.color, background: r.bg }}>
+              <span>{r.emoji}</span>
+              <span style={{ color: r.color }}>{r.name}</span>
+            </div>
+          ))}
         </div>
-        <div className="role-info">
-          <h3>📋 Roles in this game:</h3>
-          <div className="role-tags">
-            <span className="tag werewolf">🐺 Werewolf</span>
-            <span className="tag seer">🔮 Seer</span>
-            <span className="tag doctor">⚕️ Doctor</span>
-            <span className="tag villager">👨‍🌾 Villager</span>
-          </div>
+
+        {/* CTA Buttons */}
+        <div className="landing-actions">
+          <button
+            className="btn-primary btn-large"
+            onClick={() => setScreen('create')}
+          >
+            🏠 Jieun Rohangan
+          </button>
+          <button
+            className="btn-secondary btn-large"
+            onClick={() => setScreen('join')}
+          >
+            🚪 Asup Rohangan
+          </button>
         </div>
-        <button onClick={startGame} disabled={players.length < 3} className="start-btn">
-          {players.length < 3 ? `Need ${3 - players.length} more` : '🎮 Start Game!'}
+
+        {/* Sound Toggle */}
+        <button
+          className="sound-toggle-btn"
+          onClick={() => setSoundEnabled(!soundEnabled)}
+        >
+          {soundEnabled ? '🔊' : '🔇'}
         </button>
       </div>
     </div>
   );
 
-  if (screen === 'game') return (
-    <div className="game-layout">
-      <div className="left-panel">
-        {myRole && (
-          <div className="panel-card role-box" style={{ borderColor: getRoleColor(myRole) }}>
-            <p className="label">YOUR ROLE</p>
-            <div className="role" style={{ color: getRoleColor(myRole) }}>
-              {getRoleEmoji(myRole)} {myRole.toUpperCase()}
-            </div>
-            <div className="role-desc">
-              {myRole === 'werewolf' && '🐺 Kill a villager each night!'}
-              {myRole === 'seer' && '🔮 Reveal one player each night!'}
-              {myRole === 'doctor' && '⚕️ Protect one player each night!'}
-              {myRole === 'villager' && '👨‍🌾 Vote out the werewolves!'}
-            </div>
-            {teammates.length > 0 && (
-              <div className="teammates">
-                🐺 Teammates: {teammates.join(', ')}
-              </div>
-            )}
-          </div>
-        )}
+  // ============================================================
+  // SCREEN: CREATE ROOM
+  // ============================================================
+  if (screen === 'create') return (
+    <div className="form-screen">
+      <div className="form-card">
+        <button className="back-btn" onClick={() => setScreen('landing')}>
+          ← Balik
+        </button>
 
-        <div className="panel-card phase-box">
-          <div className="phase-header">
-            {phase === 'night' ? '🌙 NIGHT' : '☀️ DAY'} {dayCount}
-          </div>
-          {phaseMessage && <p className="phase-msg">{phaseMessage}</p>}
+        <div className="form-header">
+          <div className="form-icon">🏠</div>
+          <h2>Jieun Rohangan Anyar</h2>
+          <p>Buat ruangan baru untuk bermain</p>
         </div>
 
-        {phase === 'night' && nightTargets.length > 0 && isAlive && (
-          <div className="panel-card action-box">
-            <p className="label">NIGHT ACTION</p>
-            <p className="action-msg">{nightInstruction}</p>
-            <div className="target-list">
-              {nightTargets.map((t, i) => (
-                <button key={i} className="target-btn" onClick={() => sendNightAction(t)}>
-                  👤 {t}
-                </button>
-              ))}
+        {error && <div className="error-box">{error}</div>}
+
+        <div className="form-group">
+          <label>👤 Ngaran Maneh (Nama Kamu)</label>
+          <input
+            placeholder="Lebetkeun ngaran..."
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            maxLength={20}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>🏠 Ngaran Rohangan (Nama Ruangan)</label>
+          <input
+            placeholder="Lebetkeun ngaran rohangan..."
+            value={roomName}
+            onChange={e => setRoomName(e.target.value)}
+            maxLength={30}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>👥 Jumlah Pamain Maksimal ({maxPlayers} urang)</label>
+          <div className="slider-container">
+            <input
+              type="range"
+              min={3} max={12}
+              value={maxPlayers}
+              onChange={e => setMaxPlayers(Number(e.target.value))}
+              className="slider"
+            />
+            <div className="slider-labels">
+              <span>3</span>
+              <span className="slider-value">{maxPlayers}</span>
+              <span>12</span>
             </div>
           </div>
-        )}
-
-        {actionConfirmed && (
-          <div className="panel-card confirmed-box">✅ {actionConfirmed}</div>
-        )}
-
-        {seerResult && (
-          <div className="panel-card seer-box">
-            <p className="label">🔮 SEER VISION</p>
-            <p>{seerResult.target} is a{' '}
-              <strong style={{ color: getRoleColor(seerResult.role) }}>
-                {getRoleEmoji(seerResult.role)} {seerResult.role.toUpperCase()}
-              </strong>!
-            </p>
+          <div className="role-preview-info">
+            {getRolePreview(maxPlayers)}
           </div>
-        )}
+        </div>
 
-        {nightResult && (
-          <div className="panel-card night-result-box">
-            <p className="label">🌅 NIGHT RESULT</p>
-            {nightResult.killed
-              ? <p>😱 <strong>{nightResult.killed}</strong> was killed!</p>
-              : <p>🎉 Everyone survived!</p>}
-            {nightResult.protected && (
-              <p>🛡️ <strong>{nightResult.protected}</strong> was protected!</p>
-            )}
-          </div>
-        )}
-
-        {eliminatedInfo && (
-          <div className="panel-card eliminated-box">
-            <p className="label">⚖️ ELIMINATED</p>
-            <p>🪓 <strong>{eliminatedInfo.username}</strong> was a{' '}
-              <strong style={{ color: getRoleColor(eliminatedInfo.role) }}>
-                {getRoleEmoji(eliminatedInfo.role)} {eliminatedInfo.role}
-              </strong>!
-            </p>
-          </div>
-        )}
-
-        {phase === 'day' && voteTargets.length > 0 && isAlive && !myVote && (
-          <div className="panel-card vote-box">
-            <p className="label">🗳️ CAST YOUR VOTE</p>
-            <p>Who is the werewolf?</p>
-            <div className="target-list">
-              {voteTargets.map((t, i) => (
-                <button key={i} className="vote-btn" onClick={() => castVote(t)}>
-                  🪓 Eliminate {t}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {myVote && phase === 'day' && (
-          <div className="panel-card confirmed-box">
-            ✅ You voted to eliminate: <strong>{myVote}</strong>
-          </div>
-        )}
-
-        {phase === 'day' && Object.keys(votes).length > 0 && (
-          <div className="panel-card vote-tracker">
-            <p className="label">📊 VOTE TRACKER</p>
-            {Object.entries(votes).map(([voter, target], i) => (
-              <div key={i} className="vote-row">
-                <span>👤 {voter}</span>
-                <span>→ 🪓 {target}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!isAlive && (
-          <div className="panel-card dead-box">
-            💀 You are dead! You can only watch.
-          </div>
-        )}
+        <button className="btn-primary" onClick={createRoom}>
+          🏠 Jieun Rohangan
+        </button>
       </div>
+    </div>
+  );
 
-      <div className="right-panel">
-        <div className="panel-card">
-          <h3>👥 Players ({players.filter(p => p.isAlive).length} alive)</h3>
-          <ul className="players">
+  // ============================================================
+  // SCREEN: JOIN ROOM
+  // ============================================================
+  if (screen === 'join') return (
+    <div className="form-screen">
+      <div className="form-card">
+        <button className="back-btn" onClick={() => setScreen('landing')}>
+          ← Balik
+        </button>
+
+        <div className="form-header">
+          <div className="form-icon">🚪</div>
+          <h2>Asup Rohangan</h2>
+          <p>Masuk ke ruangan yang sudah ada</p>
+        </div>
+
+        {error && <div className="error-box">{error}</div>}
+
+        <div className="form-group">
+          <label>👤 Ngaran Maneh (Nama Kamu)</label>
+          <input
+            placeholder="Lebetkeun ngaran..."
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            maxLength={20}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>🔑 Kode Rohangan (Kode Ruangan)</label>
+          <input
+            placeholder="Contoh: ABC123"
+            value={joinCode}
+            onChange={e => setJoinCode(e.target.value.toUpperCase())}
+            maxLength={6}
+            className="code-input"
+            onKeyDown={e => e.key === 'Enter' && joinRoom()}
+          />
+        </div>
+
+        <button className="btn-primary" onClick={joinRoom}>
+          🚪 Asup Rohangan
+        </button>
+      </div>
+    </div>
+  );
+
+  // ============================================================
+  // SCREEN: LOBBY
+  // ============================================================
+  if (screen === 'lobby') return (
+    <div className="lobby-screen">
+      <div className="lobby-card">
+        {/* Header */}
+        <div className="lobby-header">
+          <div className="lobby-title">
+            <span className="lobby-icon">⚖️</span>
+            <div>
+              <h1>Village Trial</h1>
+              <p className="lobby-room-name">{currentRoomName}</p>
+            </div>
+          </div>
+          {isHost && <span className="host-badge">👑 Host</span>}
+        </div>
+
+        {/* Room Code */}
+        <div className="room-code-section">
+          <p className="room-code-label">Kode Rohangan:</p>
+          <div className="room-code-display">{currentRoom}</div>
+          <p className="room-code-hint">Bagikeun kode ieu ka babaturan maneh</p>
+        </div>
+
+        {error && <div className="error-box">{error}</div>}
+
+        {/* Host Controls */}
+        {isHost && (
+          <div className="host-controls">
+            <div className="host-controls-title">⚙️ Setelan Host</div>
+            <div className="form-group">
+              <label>👥 Maksimal Pamain ({maxPlayers})</label>
+              <div className="slider-container">
+                <input
+                  type="range" min={3} max={12}
+                  value={maxPlayers}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setMaxPlayers(val);
+                    socket.emit('updateMaxPlayers', {
+                      roomCode: currentRoom,
+                      maxPlayers: val
+                    });
+                  }}
+                  className="slider"
+                />
+                <div className="slider-labels">
+                  <span>3</span>
+                  <span className="slider-value">{maxPlayers}</span>
+                  <span>12</span>
+                </div>
+              </div>
+              <div className="role-preview-info">
+                {getRolePreview(maxPlayers)}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Players List */}
+        <div className="players-section">
+          <h3>👥 Urang Lembur ({players.length}/{maxPlayers})</h3>
+          <ul className="players-list">
             {players.map((p, i) => (
-              <li key={i} className={!p.isAlive ? 'dead' : ''}>
-                <span>{p.isAlive ? '👤' : '💀'} {p.username}
-                  {p.username === username && ' (You)'}
+              <li key={i} className="player-item">
+                <span className="player-name">
+                  👤 {p.username}
+                  {p.username === username && (
+                    <span className="you-badge">Maneh</span>
+                  )}
                 </span>
-                {!p.isAlive && <span className="badge dead-badge">Dead</span>}
+                {isHost && p.username !== username && (
+                  <button
+                    className="kick-btn"
+                    onClick={() => kickPlayer(p.username)}
+                  >
+                    ✕
+                  </button>
+                )}
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="panel-card chat-panel">
-          <h3>
-            💬 Chat
-            {phase === 'night' && myRole === 'werewolf' && ' (Werewolf only)'}
-            {phase === 'night' && myRole !== 'werewolf' && ' (Night - silent)'}
-          </h3>
-          <div className="chat-messages">
-            {chatMessages.map((msg, i) => (
-              <div key={i} className={`chat-msg ${msg.type}`}>
-                {msg.type !== 'system' && (
-                  <span className="chat-user">{msg.username}</span>
-                )}
-                <span className="chat-text">{msg.message}</span>
-                <span className="chat-time">{msg.timestamp}</span>
+        {/* Role Info */}
+        <div className="role-info-section">
+          <h3>📋 Peran anu bakal aya:</h3>
+          <div className="role-chips">
+            {Object.entries(ROLES).map(([key, r]) => (
+              <div key={key} className="role-chip"
+                style={{ borderColor: r.color, background: r.bg }}>
+                {r.emoji} <span style={{ color: r.color }}>{r.name}</span>
               </div>
             ))}
-            <div ref={chatEndRef} />
           </div>
-          {canChat && (
-            <div className="chat-input">
-              <input
-                placeholder="Type message..."
-                value={chatInput}
-                onChange={e => setChatInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && sendChat()}
+          <div className="role-requirements">
+            <p>🎮 Minimal 3 pamain pikeun mimitian</p>
+            <p>🔮 Dukun: 4+ pamain</p>
+            <p>👴 Kolot: 6+ pamain</p>
+            <p>🗝️ Kuncen: 7+ pamain</p>
+            <p>🕌 Ajengan: 8+ pamain</p>
+          </div>
+        </div>
+
+        {/* Start Button (Host Only) */}
+        {isHost ? (
+          <button
+            className="btn-primary btn-start"
+            onClick={startGame}
+            disabled={players.length < 3}
+          >
+            {players.length < 3
+              ? `Kurang ${3 - players.length} pamain deui`
+              : '🎮 Mimitian Kaulinan!'}
+          </button>
+        ) : (
+          <div className="waiting-host">
+            ⏳ Ngantosan host mimitian kaulinan...
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // ============================================================
+  // SCREEN: GAME
+  // ============================================================
+  if (screen === 'game') return (
+    <div className="game-screen"
+      style={{ background: phaseData?.bg || '#1a1a2e' }}>
+
+      {/* Role Reveal */}
+      {showRoleReveal && (
+        <RoleRevealOverlay
+          role={myRole}
+          teammates={teammates}
+          onDone={() => setShowRoleReveal(false)}
+        />
+      )}
+
+      {/* Game Layout */}
+      <div className="game-layout">
+
+        {/* ── LEFT PANEL ── */}
+        <div className="left-panel">
+
+          {/* Phase Header */}
+          <div className="panel-card phase-card"
+            style={{ borderColor: phaseData?.color }}>
+            <div className="phase-title" style={{ color: phaseData?.color }}>
+              {phaseData?.emoji} {phaseData?.label}
+            </div>
+            <div className="phase-day">Ronde {dayCount}</div>
+            {phaseMessage && (
+              <div className="phase-message">{phaseMessage}</div>
+            )}
+            {phase && phase !== 'malam' && (
+              <Timer
+                key={`${phase}-${dayCount}`}
+                duration={phaseDuration}
+                phase={phase}
               />
-              <button onClick={sendChat}>Send</button>
+            )}
+          </div>
+
+          {/* Role Card */}
+          {roleData && !isHost && (
+            <div className="panel-card role-card"
+              style={{ borderColor: roleData.color, background: roleData.bg }}>
+              <div className="role-card-header">
+                <span className="role-card-label">PERAN MANEH</span>
+                {myRole === 'werewolf' && (
+                  <span className="sanekala-badge">👹 SANEKALA</span>
+                )}
+              </div>
+              <div className="role-card-main">
+                <span className="role-card-emoji">{roleData.emoji}</span>
+                <span className="role-card-name"
+                  style={{ color: roleData.color }}>
+                  {roleData.name}
+                </span>
+              </div>
+              <div className="role-card-desc">{roleData.desc}</div>
+
+              {/* Sanekala: tampilkan sesama sanekala */}
+              {myRole === 'werewolf' && sanekalaList.length > 0 && (
+                <div className="sanekala-team">
+                  <div className="sanekala-team-title">
+                    👹 Batur Sanekala (Ngan maneh anu bisa ningali ieu):
+                  </div>
+                  {sanekalaList.map((s, i) => (
+                    <div key={i} className={`sanekala-member ${!s.isAlive ? 'dead' : ''}`}>
+                      <span className="sanekala-icon">👹</span>
+                      <span>{s.username}</span>
+                      {!s.isAlive && <span className="dead-tag">Tilar</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Kuncen shield status */}
+              {myRole === 'kuncen' && (
+                <div className="kuncen-shield-status">
+                  {hasShield
+                    ? '🛡️ Kebal masih aktif'
+                    : '🛡️ Kebal geus dipake'}
+                </div>
+              )}
+
+              {/* Ajengan ruqyah status */}
+              {myRole === 'ajengan' && (
+                <div className="ajengan-ruqyah-status">
+                  {!ruqyahUsed
+                    ? '🕌 Ruqyah Massal: Sadia'
+                    : '🕌 Ruqyah Massal: Geus dipake'}
+                </div>
+              )}
             </div>
           )}
-          {!canChat && (
-            <div className="chat-disabled">
-              🔇 {phase === 'night' ? 'Silent during night' : 'Dead players cannot chat'}
+
+          {/* Host Monitor */}
+          {isHost && hostRoleInfo.length > 0 && (
+            <HostMonitor
+              players={players}
+              hostRoleInfo={hostRoleInfo}
+              phase={phase}
+              dayCount={dayCount}
+            />
+          )}
+
+          {/* ── SENJA ACTIONS ── */}
+          {phase === 'senja' && isAlive && !isHost && (
+            <>
+              {/* Sanekala */}
+              {myRole === 'werewolf' && !nightBlocked && !actionConfirmed && (
+                <div className="panel-card action-card sanekala-action">
+                  <div className="action-label">👹 AKSI SANEKALA</div>
+                  <p className="action-instruction">{nightInstruction}</p>
+                  <div className="target-grid">
+                    {nightTargets.map((t, i) => (
+                      <button key={i} className="target-btn sanekala-target"
+                        onClick={() => sendNightAction(t)}>
+                        👦 {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {myRole === 'werewolf' && nightBlocked && !actionConfirmed && (
+                <div className="panel-card action-card blocked-action">
+                  <div className="action-label">🕌 DIBLOKIR RUQYAH</div>
+                  <p>Ruqyah Massal Ajengan ngahalangan aksi maneh senja ieu!</p>
+                </div>
+              )}
+
+              {/* Dukun */}
+              {myRole === 'seer' && !actionConfirmed && (
+                <div className="panel-card action-card seer-action">
+                  <div className="action-label">🔮 AKSI DUKUN</div>
+                  <p className="action-instruction">{nightInstruction}</p>
+                  <div className="target-grid">
+                    {nightTargets.map((t, i) => (
+                      <button key={i} className="target-btn seer-target"
+                        onClick={() => sendNightAction(t)}>
+                        👤 {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Kolot */}
+              {myRole === 'doctor' && !actionConfirmed && (
+                <div className="panel-card action-card doctor-action">
+                  <div className="action-label">👴 AKSI KOLOT</div>
+                  <p className="action-instruction">{nightInstruction}</p>
+                  <div className="target-grid">
+                    {nightTargets.map((t, i) => (
+                      <button key={i} className="target-btn doctor-target"
+                        onClick={() => sendNightAction(t)}>
+                        👦 {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Kuncen */}
+              {myRole === 'kuncen' && !actionConfirmed && (
+                <div className="panel-card action-card kuncen-action">
+                  <div className="action-label">🗝️ AKSI KUNCEN</div>
+                  {!kuncenMode ? (
+                    <>
+                      <p className="action-instruction">{nightInstruction}</p>
+                      {hasShield && (
+                        <button className="target-btn kuncen-target"
+                          onClick={() => setKuncenMode('shield')}>
+                          🛡️ Gunakeun Kebal (Lindungi diri)
+                        </button>
+                      )}
+                      <button className="target-btn kuncen-target"
+                        onClick={() => setKuncenMode('lock')}>
+                        🔒 Kunci Pamain (Skip vote)
+                      </button>
+                    </>
+                  ) : kuncenMode === 'shield' ? (
+                    <>
+                      <p>Konfirmasi gunakeun kebal?</p>
+                      <button className="target-btn kuncen-target"
+                        onClick={() => sendNightAction(username, 'shield')}>
+                        🛡️ Aktifkeun Kebal!
+                      </button>
+                      <button className="back-small-btn"
+                        onClick={() => setKuncenMode('')}>
+                        ← Balik
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p>Pilih saha anu rék dikunci:</p>
+                      <div className="target-grid">
+                        {nightTargets.map((t, i) => (
+                          <button key={i} className="target-btn kuncen-target"
+                            onClick={() => sendNightAction(t, 'lock')}>
+                            🔒 {t}
+                          </button>
+                        ))}
+                      </div>
+                      <button className="back-small-btn"
+                        onClick={() => setKuncenMode('')}>
+                        ← Balik
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Ajengan */}
+              {myRole === 'ajengan' && !actionConfirmed && (
+                <div className="panel-card action-card ajengan-action">
+                  <div className="action-label">🕌 AKSI AJENGAN</div>
+                  <p className="action-instruction">{nightInstruction}</p>
+                  {ruqyahAvailable && !ruqyahUsed && (
+                    <button className="ruqyah-btn" onClick={activateRuqyah}>
+                      ✨ Aktifkeun Ruqyah Massal!
+                      <span className="ruqyah-warning">
+                        ⚠️ Sanekala bakal nyaho maneh Ajengan!
+                      </span>
+                    </button>
+                  )}
+                  <div className="target-grid">
+                    {nightTargets.map((t, i) => (
+                      <button key={i} className="target-btn ajengan-target"
+                        onClick={() => sendNightAction(t)}>
+                        🙏 {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Budak / Villager */}
+              {myRole === 'villager' && (
+                <div className="panel-card action-card villager-night">
+                  <div className="action-label">👦 SENJA MENCEKAM</div>
+                  <p>Geura balik ka imah! Senja geus datang!</p>
+                  <p className="small-text">
+                    Sanekala, Dukun, Kolot, Kuncen, jeung Ajengan keur ngalakukeun aksi...
+                  </p>
+                </div>
+              )}
+
+              {/* Action Confirmed */}
+              {actionConfirmed && (
+                <div className="panel-card confirmed-card">
+                  ✅ {actionConfirmed}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── SIANG ACTIONS ── */}
+          {phase === 'siang' && !isHost && (
+            <>
+              {/* Ajengan Ruqyah Massal Button */}
+              {myRole === 'ajengan' && isAlive && !ruqyahUsed && (
+                <div className="panel-card action-card ajengan-action">
+                  <div className="action-label">🕌 RUQYAH MASSAL</div>
+                  <p>Gunakeun Ruqyah Massal pikeun ngahalangan Sanekala senja ieu!</p>
+                  <button className="ruqyah-btn" onClick={activateRuqyah}>
+                    ✨ Aktifkeun Ruqyah Massal!
+                    <span className="ruqyah-warning">
+                      ⚠️ Sanekala bakal nyaho maneh Ajengan!
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              {/* Voting */}
+              {isAlive && !myVote && voteTargets.length > 0 && (
+                <div className="panel-card action-card vote-card">
+                  <div className="action-label">🗳️ SIDANG LEMBUR</div>
+                  <p className="action-instruction">
+                    Saha anu maneh curiga jadi Sanekala?
+                  </p>
+                  {lockedPlayers.length > 0 && (
+                    <div className="locked-notice">
+                      🔒 {lockedPlayers.join(', ')} dikunci ku Kuncen!
+                    </div>
+                  )}
+                  <div className="target-grid">
+                    {voteTargets.map((t, i) => (
+                      <button key={i}
+                        className={`target-btn vote-target ${lockedPlayers.includes(t) ? 'locked' : ''}`}
+                        onClick={() => castVote(t)}
+                        disabled={lockedPlayers.includes(t)}
+                      >
+                        {lockedPlayers.includes(t) ? '🔒' : '🪓'} {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {myVote && (
+                <div className="panel-card confirmed-card">
+                  ✅ Maneh milih ngusir: <strong>{myVote}</strong>
+                </div>
+              )}
+
+              {/* Vote Tracker */}
+              {Object.keys(votes).length > 0 && (
+                <div className="panel-card vote-tracker-card">
+                  <div className="action-label">📊 HASIL PILIHAN</div>
+                  {Object.entries(votes).map(([voter, target], i) => (
+                    <div key={i} className="vote-row">
+                      <span>👤 {voter}</span>
+                      <span className="vote-arrow">→</span>
+                      <span>🪓 {target}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── MALAM RESULTS ── */}
+          {phase === 'malam' && senjaResult && (
+            <div className="panel-card malam-result-card">
+              <div className="action-label">🌙 KAAYAAN LEMBUR</div>
+              {senjaResult.killed ? (
+                <div className="result-killed">
+                  😱 <strong>{senjaResult.killed}</strong> kapanggih leungit!
+                  <br />Diculik ku Sanekala!
+                </div>
+              ) : (
+                <div className="result-safe">
+                  🎉 Sadaya urang salamet senja ieu!
+                </div>
+              )}
+              {senjaResult.protectedBy && (
+                <div className="result-protected">
+                  🛡️ Hiji urang diselamatkeun ku{' '}
+                  {senjaResult.protectedBy === 'kolot' ? 'Kolot 👴'
+                    : senjaResult.protectedBy === 'ajengan' ? 'Ajengan 🕌'
+                    : 'Kuncen 🗝️'}!
+                </div>
+              )}
+              {senjaResult.lockedPlayer && (
+                <div className="result-locked">
+                  🔒 <strong>{senjaResult.lockedPlayer}</strong> dikunci ku Kuncen!
+                  Teu bisa divote ronde ieu!
+                </div>
+              )}
             </div>
           )}
+
+          {/* Seer Result */}
+          {seerResult && (
+            <div className="panel-card seer-result-card">
+              <div className="action-label">🔮 PANON DUKUN</div>
+              <p>
+                <strong>{seerResult.target}</strong> téh nyaéta{' '}
+                <strong style={{ color: ROLES[seerResult.role]?.color }}>
+                  {ROLES[seerResult.role]?.emoji} {ROLES[seerResult.role]?.name}
+                </strong>!
+              </p>
+              {seerResult.isSanekala && (
+                <p className="warning-text">
+                  ⚠️ Manéhna téh Sanekala! Ati-ati!
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Eliminated Info */}
+          {eliminatedInfo && (
+            <div className="panel-card eliminated-card">
+              <div className="action-label">⚖️ KAPUTUSAN SIDANG</div>
+              <p>
+                🪓 <strong>{eliminatedInfo.username}</strong> diusir tina lembur!
+                <br />Manéhna téh{' '}
+                <strong style={{ color: ROLES[eliminatedInfo.role]?.color }}>
+                  {ROLES[eliminatedInfo.role]?.emoji} {ROLES[eliminatedInfo.role]?.name}
+                </strong>!
+              </p>
+            </div>
+          )}
+
+          {/* Ajengan Wasiat */}
+          {ajenganWasiat && (
+            <div className="panel-card wasiat-card">
+              <div className="action-label">📜 WASIAT AJENGAN</div>
+              <p>{ajenganWasiat}</p>
+            </div>
+          )}
+
+          {/* Dead Player */}
+          {!isAlive && !isHost && (
+            <div className="panel-card dead-card">
+              💀 Maneh geus tilar dunya...
+              <br />Saksian wé jalannya kaulinan
+            </div>
+          )}
+
+          {/* Host Controls in Game */}
+          {isHost && (
+            <div className="panel-card host-game-controls">
+              <div className="action-label">👑 KONTROL HOST</div>
+              <button className="btn-danger" onClick={endGame}>
+                ⏹️ Akhiri Kaulinan
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ── RIGHT PANEL ── */}
+        <div className="right-panel">
+
+          {/* Players */}
+          <div className="panel-card players-card">
+            <h3>👥 Urang Lembur
+              <span className="alive-count">
+                ({players.filter(p => p.isAlive).length} hirup)
+              </span>
+            </h3>
+            <ul className="game-players-list">
+              {players.map((p, i) => {
+                const isSanekala = myRole === 'werewolf' &&
+                  sanekalaList.find(s => s.username === p.username);
+                return (
+                  <li key={i} className={`game-player-item ${!p.isAlive ? 'dead' : ''} ${p.isLocked ? 'locked' : ''}`}>
+                    <span className="game-player-icon">
+                      {!p.isAlive ? '💀' : isSanekala ? '👹' : '👤'}
+                    </span>
+                    <span className="game-player-name">
+                      {p.username}
+                      {p.username === username && (
+                        <span className="you-tag">(Maneh)</span>
+                      )}
+                    </span>
+                    <div className="game-player-badges">
+                      {isSanekala && p.isAlive && (
+                        <span className="sanekala-tag">👹</span>
+                      )}
+                      {p.isLocked && (
+                        <span className="locked-tag">🔒</span>
+                      )}
+                      {!p.isAlive && (
+                        <span className="dead-tag-sm">Tilar</span>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Chat */}
+          <div className="panel-card chat-card">
+            <div className="chat-header">
+              <h3>
+                {phase === 'senja' && myRole === 'werewolf'
+                  ? '👹 Bisikan Sanekala'
+                  : phase === 'senja'
+                  ? '🌅 Senja Jempe...'
+                  : '☀️ Obrolan Lembur'}
+              </h3>
+              {phase === 'senja' && myRole === 'werewolf' && (
+                <span className="chat-private-badge">🔒 Privat</span>
+              )}
+            </div>
+
+            <div className="chat-messages" ref={chatEndRef}>
+              {chatMessages.map((msg, i) => (
+                <div key={i} className={`chat-msg chat-${msg.type}`}>
+                  {msg.type !== 'system' && (
+                    <span className="chat-username"
+                      style={{ color: msg.type === 'sanekala' ? '#e94560' : '#f39c12' }}>
+                      {msg.type === 'sanekala' ? '👹' : '👤'} {msg.username}
+                    </span>
+                  )}
+                  <span className="chat-text">{msg.message}</span>
+                  <span className="chat-time">{msg.timestamp}</span>
+                </div>
+              ))}
+              <div ref={chatEndRef} />
+            </div>
+
+            {canChat ? (
+              <div className="chat-input-row">
+                <input
+                  className="chat-input"
+                  placeholder={
+                    phase === 'senja'
+                      ? 'Bisik ka batur Sanekala...'
+                      : 'Omongkeun pamadegan maneh...'
+                  }
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && sendChat()}
+                />
+                <button className="chat-send-btn" onClick={sendChat}>
+                  Kirim
+                </button>
+              </div>
+            ) : (
+              <div className="chat-disabled">
+                {phase === 'senja'
+                  ? '🌅 Jempe... senja keur mencekam'
+                  : phase === 'malam'
+                  ? '🌙 Peuting... ngantosan beurang'
+                  : '💀 Arwah maneh teu bisa ngomong'}
+              </div>
+            )}
+          </div>
+
+          {/* Sound Toggle */}
+          <button
+            className="sound-toggle-btn-game"
+            onClick={() => setSoundEnabled(!soundEnabled)}
+          >
+            {soundEnabled ? '🔊 Suara ON' : '🔇 Suara OFF'}
+          </button>
         </div>
       </div>
     </div>
   );
 
+  // ============================================================
+  // SCREEN: GAME OVER
+  // ============================================================
   if (screen === 'gameover') return (
-    <div className="container">
-      <div className="card">
-        <h1>{gameOver?.winner === 'villagers' ? '🏆 Villagers Win!' : '🐺 Werewolves Win!'}</h1>
-        <div className={`winner-banner ${gameOver?.winner}`}>
-          {gameOver?.message}
+    <div className="gameover-screen"
+      style={{
+        background: gameOver?.winner === 'warga'
+          ? 'linear-gradient(135deg, #0a2e0a, #1a4a1a, #0a2e0a)'
+          : 'linear-gradient(135deg, #2e0a0a, #4a1a1a, #2e0a0a)'
+      }}>
+      <div className="gameover-card">
+        {/* Result */}
+        <div className="gameover-result">
+          <div className="gameover-emoji">
+            {gameOver?.winner === 'warga' ? '🏆' : '👹'}
+          </div>
+          <h1 style={{ color: gameOver?.winner === 'warga' ? '#2ecc71' : '#e94560' }}>
+            {gameOver?.winner === 'warga'
+              ? 'Urang Lembur Meunang!'
+              : 'Sanekala Meunang!'}
+          </h1>
+          <div className="gameover-message">{gameOver?.message}</div>
         </div>
-        <h3>📋 Role Reveal:</h3>
-        <ul className="players role-reveal">
-          {gameOver?.roleReveal?.map((p, i) => (
-            <li key={i} className={!p.isAlive ? 'dead' : ''}>
-              <span>{p.isAlive ? '👤' : '💀'} {p.username}</span>
-              <span style={{ color: getRoleColor(p.role) }}>
-                {getRoleEmoji(p.role)} {p.role}
-              </span>
-            </li>
-          ))}
-        </ul>
-        <button onClick={() => window.location.reload()}>🔄 Play Again</button>
+
+        {/* Role Reveal */}
+        <div className="role-reveal-section">
+          <h3>📋 Jati Diri Sadaya Pamain:</h3>
+          <div className="role-reveal-list">
+            {gameOver?.roleReveal?.map((p, i) => {
+              const r = ROLES[p.role];
+              return (
+                <div key={i}
+                  className={`role-reveal-item ${!p.isAlive ? 'dead' : ''}`}
+                  style={{ borderColor: r?.color }}>
+                  <span>{p.isAlive ? '👤' : '💀'} {p.username}</span>
+                  <span style={{ color: r?.color }}>
+                    {r?.emoji} {r?.name}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Host Controls */}
+        {isHost ? (
+          <div className="gameover-host-controls">
+            <button className="btn-primary" onClick={restartGame}>
+              🔄 Ulin Deui!
+            </button>
+            <button className="btn-secondary" onClick={endGame}>
+              🏠 Balik ka Lobby
+            </button>
+          </div>
+        ) : (
+          <div className="waiting-host">
+            ⏳ Ngantosan host pikeun mimitian deui...
+          </div>
+        )}
       </div>
     </div>
   );
 
   return null;
+}
+
+// ── Helper: Role Preview ──
+function getRolePreview(count) {
+  const roles = [];
+  const sanekalaCount = count <= 5 ? 1 : count <= 8 ? 2 : 3;
+  for (let i = 0; i < sanekalaCount; i++) roles.push('👹 Sanekala');
+  if (count >= 4) roles.push('🔮 Dukun');
+  if (count >= 6) roles.push('👴 Kolot');
+  if (count >= 7) roles.push('🗝️ Kuncen');
+  if (count >= 8) roles.push('🕌 Ajengan');
+  const villagerCount = count - roles.length;
+  for (let i = 0; i < villagerCount; i++) roles.push('👦 Budak');
+
+  return (
+    <div className="role-preview-chips">
+      {roles.map((r, i) => (
+        <span key={i} className="role-preview-chip">{r}</span>
+      ))}
+    </div>
+  );
 }
 
 export default App;
