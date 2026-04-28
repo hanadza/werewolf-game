@@ -515,30 +515,59 @@ function startSiangPhase(roomCode) {
   room.votes = {};
   room.lockedPlayers = room.lockedPlayers || [];
 
+  // Hari pertama = tidak ada vote (belum ada korban)
+  const isFirstDay = room.dayCount === 1;
+
   const alivePlayers = room.players.filter(p => p.isAlive);
-  const voteTargets = alivePlayers
+  const voteTargets = isFirstDay ? [] : alivePlayers
     .filter(p => !room.lockedPlayers.includes(p.username))
     .map(p => p.username);
+
+  const message = isFirstDay
+    ? 'Wilujeng sumping di lembur! Kenalan heula jeung batur saméméh senja datang...'
+    : 'Panonpoe caang... Sanekala nyamar jadi warga biasa. Saha anu bisa dipercaya?';
 
   io.to(roomCode).emit('phaseChange', {
     phase: 'siang',
     dayCount: room.dayCount,
     duration: PHASE_DURATION.siang,
-    message: 'Panonpoe caang... Sanekala nyamar jadi warga biasa. Saha anu bisa dipercaya?',
+    message,
     voteTargets,
-    lockedPlayers: room.lockedPlayers
+    lockedPlayers: room.lockedPlayers,
+    isFirstDay
   });
 
-  broadcastChat(roomCode, `☀️ Beurang ka-${room.dayCount} dimimitian! Diskusi jeung pilih saha Sanekala!`, 'system');
-
-  if (room.lockedPlayers.length > 0) {
-    broadcastChat(roomCode, `🔒 ${room.lockedPlayers.join(', ')} dikunci ku Kuncen!`, 'system');
+  if (isFirstDay) {
+    broadcastChat(roomCode,
+      `☀️ Kaulinan dimimitian! Ieu mangrupa beurang ka-1. Kenalan heula, teu aya sidang!`,
+      'system'
+    );
+    broadcastChat(roomCode,
+      `🌅 Senja bakal datang... Sanekala bakal ngaliar. Ati-ati!`,
+      'system'
+    );
+  } else {
+    broadcastChat(roomCode,
+      `☀️ Beurang ka-${room.dayCount} dimimitian! Diskusi jeung pilih saha Sanekala!`,
+      'system'
+    );
+    if (room.lockedPlayers.length > 0) {
+      broadcastChat(roomCode,
+        `🔒 ${room.lockedPlayers.join(', ')} dikunci ku Kuncen! Teu bisa divote!`,
+        'system'
+      );
+    }
   }
 
-  // Auto resolve setelah 60 detik
+  // Auto resolve
   room.phaseTimer = setTimeout(() => {
     if (rooms.get(roomCode)?.phase === 'siang') {
-      resolveSiangVote(roomCode);
+      if (isFirstDay) {
+        // Hari pertama langsung ke senja tanpa vote
+        startTransition(roomCode, 'senja');
+      } else {
+        resolveSiangVote(roomCode);
+      }
     }
   }, PHASE_DURATION.siang * 1000);
 }
@@ -546,6 +575,12 @@ function startSiangPhase(roomCode) {
 function resolveSiangVote(roomCode) {
   const room = rooms.get(roomCode);
   if (!room || room.phase !== 'siang') return;
+
+  // Hari pertama tidak ada vote
+  if (room.dayCount === 1) {
+    startTransition(roomCode, 'senja');
+    return;
+  }
 
   clearPhaseTimer(roomCode);
 

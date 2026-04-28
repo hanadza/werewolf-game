@@ -302,6 +302,7 @@ function App() {
   const [teammates, setTeammates] = useState([]);
   const [sanekalaList, setSanekalaList] = useState([]);
   const [phase, setPhase] = useState('');
+  const [isFirstDay, setIsFirstDay] = useState(true);
   const [dayCount, setDayCount] = useState(1);
   const [phaseMessage, setPhaseMessage] = useState('');
   const [phaseDuration, setPhaseDuration] = useState(60);
@@ -436,25 +437,26 @@ function App() {
     });
 
     // Phase Events
-    socket.on('phaseChange', ({ phase, dayCount, duration, message, voteTargets, lockedPlayers, killed, protectedBy, lockedPlayer }) => {
-      setPhase(phase);
-      setDayCount(dayCount || 1);
-      setPhaseDuration(duration || 60);
-      setPhaseMessage(message || '');
-      setActionConfirmed('');
-      setSeerResult(null);
-      setEliminatedInfo(null);
-      setKuncenMode('');
+    socket.on('phaseChange', ({ phase, dayCount, duration, message, voteTargets, lockedPlayers, killed, protectedBy, lockedPlayer, isFirstDay }) => {
+  setPhase(phase);
+  setDayCount(dayCount || 1);
+  setPhaseDuration(duration || 60);
+  setPhaseMessage(message || '');
+  setActionConfirmed('');
+  setSeerResult(null);
+  setEliminatedInfo(null);
+  setKuncenMode('');
 
-      if (phase === 'siang') {
-        setMyVote('');
-        setVotes({});
-        setVoteTargets(voteTargets || []);
-        setLockedPlayers(lockedPlayers || []);
-        setSenjaResult(null);
-        stopAllSounds();
-        play('siang');
-      }
+  if (phase === 'siang') {
+    setMyVote('');
+    setVotes({});
+    setVoteTargets(voteTargets || []);
+    setLockedPlayers(lockedPlayers || []);
+    setSenjaResult(null);
+    setIsFirstDay(isFirstDay || false);
+    stopAllSounds();
+    play('siang');
+  }
 
       if (phase === 'senja') {
         setNightTargets([]);
@@ -1215,9 +1217,31 @@ const createRoom = () => {
 
           {/* ── SIANG ACTIONS ── */}
           {phase === 'siang' && !isHost && (
-            <>
-              {/* Ajengan Ruqyah Massal Button */}
-              {myRole === 'ajengan' && isAlive && !ruqyahUsed && (
+  <>
+    {/* Hari Pertama - Tidak ada vote */}
+    {isFirstDay && isAlive && (
+      <div className="panel-card first-day-card">
+        <div className="action-label">☀️ BEURANG KAHIJI</div>
+        <div className="first-day-content">
+          <div className="first-day-emoji">🌅</div>
+          <p className="first-day-title">Wilujeng Sumping!</p>
+          <p className="first-day-desc">
+            Ieu mangrupa beurang kahiji di lembur.
+            Kenalan heula jeung batur saméméh senja datang!
+          </p>
+          <p className="first-day-desc">
+            Teu aya sidang ayeuna. Senja bakal datang...
+            Sanekala bakal ngaliar!
+          </p>
+          <div className="first-day-warning">
+            ⚠️ Ati-ati! Sanekala aya di antara urang!
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Ajengan Ruqyah Massal Button */}
+    {!isFirstDay && myRole === 'ajengan' && isAlive && !ruqyahUsed && (
                 <div className="panel-card action-card ajengan-action">
                   <div className="action-label">🕌 RUQYAH MASSAL</div>
                   <p>Gunakeun Ruqyah Massal pikeun ngahalangan Sanekala senja ieu!</p>
@@ -1230,9 +1254,9 @@ const createRoom = () => {
                 </div>
               )}
 
-              {/* Voting */}
-              {isAlive && !myVote && voteTargets.length > 0 && (
-                <div className="panel-card action-card vote-card">
+              {/* Voting - hanya hari ke-2 dst */}
+                  {!isFirstDay && isAlive && !myVote && voteTargets.length > 0 && (
+                  <div className="panel-card action-card vote-card">
                   <div className="action-label">🗳️ SIDANG LEMBUR</div>
                   <p className="action-instruction">
                     Saha anu maneh curiga jadi Sanekala?
@@ -1256,14 +1280,14 @@ const createRoom = () => {
                 </div>
               )}
 
-              {myVote && (
+              {!isFirstDay && myVote && (
                 <div className="panel-card confirmed-card">
                   ✅ Maneh milih ngusir: <strong>{myVote}</strong>
                 </div>
               )}
 
               {/* Vote Tracker */}
-              {Object.keys(votes).length > 0 && (
+              {!isFirstDay && Object.keys(votes).length > 0 && (
                 <div className="panel-card vote-tracker-card">
                   <div className="action-label">📊 HASIL PILIHAN</div>
                   {Object.entries(votes).map(([voter, target], i) => (
