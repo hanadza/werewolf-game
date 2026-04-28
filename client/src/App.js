@@ -214,7 +214,7 @@ function Timer({ duration, phase, onExpire }) {
       });
     }, 1000);
     return () => clearInterval(intervalRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [duration, phase]);
 
   const percent = (timeLeft / duration) * 100;
