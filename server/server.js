@@ -32,7 +32,7 @@ db.getConnection()
   .then(conn => { console.log('✅ Database connected!'); conn.release(); })
   .catch(err => console.error('❌ Database error:', err.message));
 
-app.get('/', (req, res) => res.json({ status: 'Village Trial Server Running!' }));
+app.get('/', (req, res) => res.json({ status: 'Sandekala Village Server Running!' }));
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 // ============================================================
@@ -957,5 +957,5 @@ function endGame(roomCode, winner, message) {
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Village Trial Server running on PORT ${PORT}`);
+  console.log(`🚀 Sandekala Village Server running on PORT ${PORT}`);
 });

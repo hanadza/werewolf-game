@@ -674,7 +674,7 @@ const createRoom = () => {
         {/* Hero */}
         <div className="landing-hero">
           <div className="landing-logo">👹</div>
-          <h1 className="landing-title">Village Trial</h1>
+          <h1 className="landing-title">Sandekala Village</h1>
           <p className="landing-subtitle">Saha Sanekala di antara urang?</p>
           <p className="landing-subtitle-id">Siapakah Sanekala di antara kita?</p>
         </div>
@@ -841,7 +841,7 @@ const createRoom = () => {
           <div className="lobby-title">
             <span className="lobby-icon">⚖️</span>
             <div>
-              <h1>Village Trial</h1>
+              <h1>Sandekala Village</h1>
               <p className="lobby-room-name">{currentRoomName}</p>
             </div>
           </div>
