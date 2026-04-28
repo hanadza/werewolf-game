@@ -54,7 +54,7 @@ io.on('connection', (socket) => {
   console.log('🔌 Connected:', socket.id);
 
   // ── CREATE ROOM ──
-  socket.on('createRoom', async ({ roomName, maxPlayers }) => {
+socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername }) => {
     try {
       const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       const [result] = await db.execute(
@@ -66,8 +66,8 @@ io.on('connection', (socket) => {
         id: result.insertId,
         code: roomCode,
         name: roomName,
-        maxPlayers: maxPlayers || 8,
-        host: { id: socket.id, username: null },
+        maxPlayers: maxPlayers || 8, // default 8, max 20
+        host: { id: socket.id, username: hostUsername || 'Host' },
         players: [],
         phase: 'lobby',
         votes: {},
@@ -435,13 +435,25 @@ io.on('connection', (socket) => {
 
 function assignRoles(count) {
   const roles = [];
-  const sanekalaCount = count <= 5 ? 1 : count <= 8 ? 2 : 3;
+
+  // Sanekala scaling
+  const sanekalaCount = count <= 5 ? 1
+    : count <= 8 ? 2
+    : count <= 12 ? 3
+    : count <= 16 ? 4
+    : 5; // max 5 sanekala untuk 17-20 player
+
   for (let i = 0; i < sanekalaCount; i++) roles.push('werewolf');
-  if (count >= 4) roles.push('seer');
-  if (count >= 6) roles.push('doctor');
-  if (count >= 7) roles.push('kuncen');
-  if (count >= 8) roles.push('ajengan');
+
+  // Special roles
+  if (count >= 4) roles.push('seer');      // Dukun
+  if (count >= 6) roles.push('doctor');    // Kolot
+  if (count >= 7) roles.push('kuncen');    // Kuncen
+  if (count >= 8) roles.push('ajengan');   // Ajengan
+
+  // Sisa = Budak
   while (roles.length < count) roles.push('villager');
+
   return roles.sort(() => Math.random() - 0.5);
 }
 

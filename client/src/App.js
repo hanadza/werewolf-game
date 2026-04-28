@@ -583,10 +583,15 @@ function App() {
   }, [play]);
 
   // ── Actions ──
-  const createRoom = () => {
+const createRoom = () => {
     if (!username.trim()) return showError('Eusi ngaran heula!');
     if (!roomName.trim()) return showError('Eusi ngaran rohangan heula!');
-    socket.emit('createRoom', { roomName, maxPlayers });
+    // Set username dulu sebelum create room
+    socket.emit('createRoom', {
+      roomName: roomName.trim(),
+      maxPlayers,
+      hostUsername: username.trim()
+    });
   };
 
   const joinRoom = () => {
@@ -755,7 +760,7 @@ function App() {
           <div className="slider-container">
             <input
               type="range"
-              min={3} max={12}
+              min={3} max={20}
               value={maxPlayers}
               onChange={e => setMaxPlayers(Number(e.target.value))}
               className="slider"
@@ -763,7 +768,7 @@ function App() {
             <div className="slider-labels">
               <span>3</span>
               <span className="slider-value">{maxPlayers}</span>
-              <span>12</span>
+              <span>20</span>
             </div>
           </div>
           <div className="role-preview-info">
@@ -857,10 +862,10 @@ function App() {
           <div className="host-controls">
             <div className="host-controls-title">⚙️ Setelan Host</div>
             <div className="form-group">
-              <label>👥 Maksimal Pamain ({maxPlayers})</label>
+              <label>👥 Maksimal Pamain ({maxPlayers} urang)</label>
               <div className="slider-container">
                 <input
-                  type="range" min={3} max={12}
+                  type="range" min={3} max={20}
                   value={maxPlayers}
                   onChange={e => {
                     const val = Number(e.target.value);
@@ -875,7 +880,7 @@ function App() {
                 <div className="slider-labels">
                   <span>3</span>
                   <span className="slider-value">{maxPlayers}</span>
-                  <span>12</span>
+                  <span>20</span>
                 </div>
               </div>
               <div className="role-preview-info">
@@ -1545,7 +1550,11 @@ function App() {
 // ── Helper: Role Preview ──
 function getRolePreview(count) {
   const roles = [];
-  const sanekalaCount = count <= 5 ? 1 : count <= 8 ? 2 : 3;
+  const sanekalaCount = count <= 5 ? 1
+    : count <= 8 ? 2
+    : count <= 12 ? 3
+    : count <= 16 ? 4
+    : 5;
   for (let i = 0; i < sanekalaCount; i++) roles.push('👹 Sanekala');
   if (count >= 4) roles.push('🔮 Dukun');
   if (count >= 6) roles.push('👴 Kolot');
