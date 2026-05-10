@@ -1,0 +1,109 @@
+import React from 'react';
+import { getRolePreview } from '../utils/helpers';
+
+export default function LobbyScene({ state, actions, ROLES, socket }) {
+  const { currentRoomName, isHost, currentRoom, error, maxPlayers, setMaxPlayers, players, username } = state;
+  const { kickPlayer, startGame } = actions;
+
+  return (
+    <div className="lobby-screen">
+      <div className="lobby-card">
+        <div className="lobby-header">
+          <div className="lobby-title">
+            <span className="lobby-icon">⚖️</span>
+            <div>
+              <h1>Sandekala Village</h1>
+              <p className="lobby-room-name">{currentRoomName}</p>
+            </div>
+          </div>
+          {isHost && <span className="host-badge">👑 Host</span>}
+        </div>
+
+        <div className="room-code-section">
+          <p className="room-code-label">Kode Rohangan:</p>
+          <div className="room-code-display">{currentRoom}</div>
+          <p className="room-code-hint">Bagikeun kode ieu ka babaturan maneh</p>
+        </div>
+
+        {error && <div className="error-box">{error}</div>}
+
+        {isHost && (
+          <div className="host-controls">
+            <div className="host-controls-title">⚙️ Setelan Host</div>
+            <div className="form-group">
+              <label>👥 Maksimal Pamain ({maxPlayers} urang)</label>
+              <div className="slider-container">
+                <input
+                  type="range" min={3} max={20}
+                  value={maxPlayers}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setMaxPlayers(val);
+                    socket.emit('updateMaxPlayers', {
+                      roomCode: currentRoom,
+                      maxPlayers: val
+                    });
+                  }}
+                  className="slider"
+                />
+                <div className="slider-labels">
+                  <span>3</span>
+                  <span className="slider-value">{maxPlayers}</span>
+                  <span>20</span>
+                </div>
+              </div>
+              <div className="role-preview-info">
+                {getRolePreview(maxPlayers)}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="players-section">
+          <h3>👥 Urang Lembur ({players.length}/{maxPlayers})</h3>
+          <ul className="players-list">
+            {players.map((p, i) => (
+              <li key={i} className="player-item">
+                <span className="player-name">
+                  👤 {p.username}
+                  {p.username === username && (
+                    <span className="you-badge">Maneh</span>
+                  )}
+                </span>
+                {isHost && p.username !== username && (
+                  <button className="kick-btn" onClick={() => kickPlayer(p.username)}>✕</button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="role-info-section">
+          <h3>📋 Peran anu bakal aya:</h3>
+          <div className="role-chips">
+            {Object.entries(ROLES).map(([key, r]) => (
+              <div key={key} className="role-chip" style={{ borderColor: r.color, background: r.bg }}>
+                {r.emoji} <span style={{ color: r.color }}>{r.name}</span>
+              </div>
+            ))}
+          </div>
+          <div className="role-requirements">
+            <p>🎮 Minimal 3 pamain pikeun mimitian</p>
+            <p>🔮 Dukun: 4+ pamain</p>
+            <p>👴 Kolot: 6+ pamain</p>
+            <p>🗝️ Kuncen: 7+ pamain</p>
+            <p>🕌 Ajengan: 8+ pamain</p>
+          </div>
+        </div>
+
+        {isHost ? (
+          <button className="btn-primary btn-start" onClick={startGame} disabled={players.length < 3}>
+            {players.length < 3 ? `Kurang ${3 - players.length} pamain deui` : '🎮 Mimitian Kaulinan!'}
+          </button>
+        ) : (
+          <div className="waiting-host">⏳ Ngantosan host mimitian kaulinan...</div>
+        )}
+      </div>
+    </div>
+  );
+}
