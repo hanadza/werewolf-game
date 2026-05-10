@@ -392,6 +392,7 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername, isPrivate }
 
       io.to(roomCode).emit('hostTransferred', { newHostUsername: targetPlayer.username });
       gameLogic.broadcastChat(roomCode, `👑 ${targetPlayer.username} ayeuna jadi host!`, 'system');
+      gameLogic.broadcastPlayers(roomCode);
     }
   });
 

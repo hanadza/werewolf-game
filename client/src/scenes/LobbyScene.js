@@ -90,6 +90,9 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
                   {p.username === username && (
                     <span className="you-badge">Maneh</span>
                   )}
+                  {p.isHost && (
+                    <span className="host-badge" style={{ marginLeft: '8px', padding: '2px 6px', fontSize: '0.7rem' }}>👑 Host</span>
+                  )}
                 </span>
                 {isHost && p.username !== username && (
                   <div style={{display: 'flex', gap: '8px'}}>
