@@ -107,7 +107,6 @@ function App() {
       setCurrentRoomName(roomName);
       setMaxPlayers(maxPlayers);
       setIsHost(true);
-      socket.emit('setHostUsername', { roomCode, username: usernameRef.current });
       setScreen('lobby');
       play('join');
     });

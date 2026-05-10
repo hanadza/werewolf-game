@@ -1,7 +1,7 @@
 import React from 'react';
 import RoleRevealOverlay from '../components/RoleRevealOverlay';
 import Timer from '../components/Timer';
-import HostMonitor from '../components/HostMonitor';
+
 
 export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, username }) {
   const { phase, dayCount, phaseDuration, phaseMessage, showRoleReveal, setShowRoleReveal, myRole, teammates, sanekalaList, hasShield, ruqyahUsed, ruqyahAvailable, nightBlocked, actionConfirmed, nightInstruction, nightTargets, kuncenMode, setKuncenMode, isFirstDay, isAlive, myVote, voteTargets, lockedPlayers, votes, senjaResult, seerResult, eliminatedInfo, ajenganWasiat, isHost, hostRoleInfo, players, chatMessages, chatInput, setChatInput, soundEnabled, setSoundEnabled, canChat, phaseData } = state;
@@ -47,7 +47,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
           </div>
 
           {/* Role Card */}
-          {roleData && !isHost && (
+          {roleData && (
             <div className="panel-card role-card"
               style={{ borderColor: roleData.color, background: roleData.bg }}>
               <div className="role-card-header">
@@ -101,18 +101,10 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
             </div>
           )}
 
-          {/* Host Monitor */}
-          {isHost && hostRoleInfo.length > 0 && (
-            <HostMonitor
-              players={players}
-              hostRoleInfo={hostRoleInfo}
-              phase={phase}
-              dayCount={dayCount}
-            />
-          )}
+
 
           {/* ── SENJA ACTIONS ── */}
-          {phase === 'senja' && isAlive && !isHost && (
+          {phase === 'senja' && isAlive && (
             <>
               {/* Sanekala */}
               {myRole === 'werewolf' && !nightBlocked && !actionConfirmed && (
@@ -264,7 +256,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
           )}
 
           {/* ── SIANG ACTIONS ── */}
-          {phase === 'siang' && !isHost && (
+          {phase === 'siang' && (
   <>
     {/* Hari Pertama - Tidak ada vote */}
     {isFirstDay && isAlive && (
@@ -422,7 +414,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
           )}
 
           {/* Dead Player */}
-          {!isAlive && !isHost && (
+          {!isAlive && (
             <div className="panel-card dead-card">
               💀 Maneh geus tilar dunya...
               <br />Saksian wé jalannya kaulinan

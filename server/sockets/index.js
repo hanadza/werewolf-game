@@ -21,7 +21,14 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername }) => {
         name: roomName,
         maxPlayers: maxPlayers || 8, // default 8, max 20
         host: { id: socket.id, username: hostUsername || 'Host' },
-        players: [],
+        players: [{
+          id: socket.id,
+          username: hostUsername || 'Host',
+          role: null,
+          isAlive: true,
+          isShielded: false,
+          isLocked: false
+        }],
         phase: 'lobby',
         votes: {},
         nightActions: {},
@@ -34,6 +41,7 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername }) => {
       });
 
       socket.roomCode = roomCode;
+      socket.username = hostUsername || 'Host';
       socket.isHost = true;
       socket.join(roomCode);
 
@@ -43,20 +51,12 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername }) => {
         maxPlayers: maxPlayers || 8
       });
 
+      gameLogic.broadcastPlayers(roomCode);
       console.log(`🏠 Room ${roomCode} created by host ${socket.id}`);
     } catch (error) {
       console.error('Error createRoom:', error);
-      socket.emit('gameError', { message: error.message });
+      socket.emit('gameError', { message: error.message || 'Gagal nyieun rohangan! Cek koneksi database.' });
     }
-  });
-
-  // ── SET HOST USERNAME ──
-  socket.on('setHostUsername', ({ roomCode, username }) => {
-    const room = rooms.get(roomCode);
-    if (!room) return;
-    room.host.username = username;
-    room.host.id = socket.id;
-    io.to(roomCode).emit('hostInfo', { username });
   });
 
   // ── JOIN ROOM ──
@@ -161,13 +161,7 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername }) => {
       io.to(p.id).emit('yourRole', { role: p.role, teammates });
     });
 
-    // Kirim info ke host (host lihat semua role)
-    io.to(room.host.id).emit('hostRoleInfo', {
-      players: room.players.map(p => ({
-        username: p.username,
-        role: p.role
-      }))
-    });
+
 
     // Countdown 3 detik
     io.to(roomCode).emit('gameCountdown', { count: 3 });
@@ -381,4 +375,5 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername }) => {
     console.log('🔌 Disconnected:', socket.id);
   });
 });
-};
+
+};
