@@ -2,7 +2,7 @@ import React from 'react';
 import { getRolePreview } from '../utils/helpers';
 
 export default function LobbyScene({ state, actions, ROLES, socket }) {
-  const { currentRoomName, isHost, currentRoom, error, maxPlayers, setMaxPlayers, players, username } = state;
+  const { currentRoomName, isHost, currentRoom, error, maxPlayers, setMaxPlayers, players, username, isPrivate, setIsPrivate } = state;
   const { kickPlayer, startGame } = actions;
 
   return (
@@ -55,6 +55,24 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
               <div className="role-preview-info">
                 {getRolePreview(maxPlayers)}
               </div>
+            </div>
+
+            <div className="form-group row-group">
+              <label className="toggle-label">
+                <input 
+                  type="checkbox" 
+                  checked={isPrivate} 
+                  onChange={e => {
+                    const newStatus = e.target.checked;
+                    setIsPrivate(newStatus);
+                    socket.emit('toggleRoomVisibility', {
+                      roomCode: currentRoom,
+                      isPrivate: newStatus
+                    });
+                  }} 
+                />
+                <span className="toggle-text">🔒 Rohangan Private (Teu katingali di Landing Page)</span>
+              </label>
             </div>
           </div>
         )}

@@ -1843,3 +1843,20 @@ input::placeholder {
   font-size: 0.88rem;
   font-weight: bold;
 }
+
+.landing-form-group { margin-bottom: 20px; }
+.landing-username-input { width: 100%; max-width: 320px; padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-size: 1rem; text-align: center; }
+.public-rooms-container { margin: 30px auto; max-width: 400px; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); }
+.public-rooms-title { font-size: 1.1rem; margin-bottom: 16px; color: #f39c12; }
+.public-rooms-list { display: flex; flex-direction: column; gap: 10px; }
+.public-room-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+.public-room-item:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+.room-info { display: flex; flex-direction: column; text-align: left; }
+.room-name { font-weight: bold; font-size: 1rem; }
+.room-players { font-size: 0.8rem; opacity: 0.7; margin-top: 4px; }
+.btn-join-small { background: #2ecc71; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+.btn-join-small:hover { background: #27ae60; }
+.no-rooms-text { opacity: 0.6; font-size: 0.9rem; font-style: italic; }
+
+.public-room-item.disabled { opacity: 0.6; cursor: not-allowed; }
+.public-room-item.disabled:hover { background: rgba(255,255,255,0.05); transform: none; }
