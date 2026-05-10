@@ -16,7 +16,12 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
             <span className="lobby-icon">⚖️</span>
             <div>
               <h1>Sandekala Village</h1>
-              <p className="lobby-room-name">{currentRoomName}</p>
+              <div style={{display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap'}}>
+                <p className="lobby-room-name" style={{margin: 0}}>{currentRoomName}</p>
+                <span className={`visibility-badge ${isPrivate ? 'private' : 'public'}`}>
+                  {isPrivate ? '🔒 Private' : '🌍 Public'}
+                </span>
+              </div>
             </div>
           </div>
           {isHost && <span className="host-badge">👑 Host</span>}
@@ -91,7 +96,7 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
                     <span className="you-badge">Maneh</span>
                   )}
                   {p.isHost && (
-                    <span className="host-badge" style={{ marginLeft: '8px', padding: '2px 6px', fontSize: '0.7rem' }}>👑 Host</span>
+                    <span className="host-badge" style={{ marginLeft: '8px', padding: '2px 6px', fontSize: '0.7rem', flexShrink: 0 }}>👑 Host</span>
                   )}
                 </span>
                 {isHost && p.username !== username && (
