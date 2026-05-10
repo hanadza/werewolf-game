@@ -6,8 +6,25 @@ module.exports = function(io) {
   io.on('connection', (socket) => {
   console.log('🔌 Connected:', socket.id);
 
+  // ── GET PUBLIC ROOMS ──
+  socket.on('getPublicRooms', () => {
+    const publicRooms = [];
+    rooms.forEach((room) => {
+      if (!room.isPrivate) {
+        publicRooms.push({
+          code: room.code,
+          name: room.name,
+          playersCount: room.players.length,
+          maxPlayers: room.maxPlayers,
+          phase: room.phase
+        });
+      }
+    });
+    socket.emit('publicRoomsList', publicRooms);
+  });
+
   // ── CREATE ROOM ──
-socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername }) => {
+socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername, isPrivate }) => {
     try {
       const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       const [result] = await db.execute(
@@ -20,6 +37,7 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername }) => {
         code: roomCode,
         name: roomName,
         maxPlayers: maxPlayers || 8, // default 8, max 20
+        isPrivate: !!isPrivate,
         host: { id: socket.id, username: hostUsername || 'Host' },
         players: [{
           id: socket.id,
@@ -112,6 +130,14 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername }) => {
     if (!room || room.host.id !== socket.id) return;
     room.maxPlayers = maxPlayers;
     io.to(roomCode).emit('roomUpdated', { maxPlayers });
+  });
+
+  // ── TOGGLE ROOM VISIBILITY (host only) ──
+  socket.on('toggleRoomVisibility', ({ roomCode, isPrivate }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.host.id !== socket.id) return;
+    room.isPrivate = !!isPrivate;
+    io.to(roomCode).emit('roomVisibilityUpdated', { isPrivate: room.isPrivate });
   });
 
   // ── KICK PLAYER (host only) ──

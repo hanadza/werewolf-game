@@ -19,15 +19,7 @@ export default function JoinRoomScene({ state, actions }) {
 
         {error && <div className="error-box">{error}</div>}
 
-        <div className="form-group">
-          <label>👤 Ngaran Maneh (Nama Kamu)</label>
-          <input
-            placeholder="Lebetkeun ngaran..."
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            maxLength={20}
-          />
-        </div>
+
 
         <div className="form-group">
           <label>🔑 Kode Rohangan (Kode Ruangan)</label>

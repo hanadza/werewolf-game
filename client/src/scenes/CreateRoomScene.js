@@ -2,7 +2,7 @@ import React from 'react';
 import { getRolePreview } from '../utils/helpers';
 
 export default function CreateRoomScene({ state, actions }) {
-  const { setScreen, error, username, setUsername, roomName, setRoomName, maxPlayers, setMaxPlayers } = state;
+  const { setScreen, error, username, setUsername, roomName, setRoomName, maxPlayers, setMaxPlayers, isPrivate, setIsPrivate } = state;
   const { createRoom } = actions;
 
   return (
@@ -20,15 +20,7 @@ export default function CreateRoomScene({ state, actions }) {
 
         {error && <div className="error-box">{error}</div>}
 
-        <div className="form-group">
-          <label>👤 Ngaran Maneh (Nama Kamu)</label>
-          <input
-            placeholder="Lebetkeun ngaran..."
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            maxLength={20}
-          />
-        </div>
+
 
         <div className="form-group">
           <label>🏠 Ngaran Rohangan (Nama Ruangan)</label>
@@ -58,6 +50,17 @@ export default function CreateRoomScene({ state, actions }) {
           <div className="role-preview-info">
             {getRolePreview(maxPlayers)}
           </div>
+        </div>
+
+        <div className="form-group row-group">
+          <label className="toggle-label">
+            <input 
+              type="checkbox" 
+              checked={isPrivate} 
+              onChange={e => setIsPrivate(e.target.checked)} 
+            />
+            <span className="toggle-text">🔒 Jieun Rohangan Private (Teu katingali di Landing Page)</span>
+          </label>
         </div>
 
         <button className="btn-primary" onClick={createRoom}>

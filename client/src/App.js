@@ -31,6 +31,8 @@ function App() {
   const [currentRoomName, setCurrentRoomName] = useState('');
   const [players, setPlayers] = useState([]);
   const [joinCode, setJoinCode] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [publicRooms, setPublicRooms] = useState([]);
 
   // ── Game State ──
   const [myRole, setMyRole] = useState('');
@@ -101,7 +103,17 @@ function App() {
 
   // ── Socket Events ──
   useEffect(() => {
+    // Request public rooms when on landing screen
+    if (screen === 'landing') {
+      socket.emit('getPublicRooms');
+      const interval = setInterval(() => socket.emit('getPublicRooms'), 5000);
+      return () => clearInterval(interval);
+    }
+  }, [screen]);
+
+  useEffect(() => {
     // Room Events
+    socket.on('publicRoomsList', setPublicRooms);
     socket.on('roomCreated', ({ roomCode, roomName, maxPlayers }) => {
       setCurrentRoom(roomCode);
       setCurrentRoomName(roomName);
@@ -120,6 +132,10 @@ function App() {
 
     socket.on('roomUpdated', ({ maxPlayers }) => {
       setMaxPlayers(maxPlayers);
+    });
+
+    socket.on('roomVisibilityUpdated', ({ isPrivate }) => {
+      setIsPrivate(isPrivate);
     });
 
     socket.on('playerList', setPlayers);
@@ -326,14 +342,16 @@ const createRoom = () => {
     socket.emit('createRoom', {
       roomName: roomName.trim(),
       maxPlayers,
-      hostUsername: username.trim()
+      hostUsername: username.trim(),
+      isPrivate
     });
   };
 
-  const joinRoom = () => {
+  const joinRoom = (code) => {
+    const targetCode = typeof code === 'string' ? code : joinCode;
     if (!username.trim()) return showError('Eusi ngaran heula!');
-    if (!joinCode.trim()) return showError('Eusi kode rohangan heula!');
-    socket.emit('joinRoom', { roomCode: joinCode.toUpperCase(), username });
+    if (!targetCode.trim()) return showError('Eusi kode rohangan heula!');
+    socket.emit('joinRoom', { roomCode: targetCode.toUpperCase(), username });
   };
 
   const startGame = () => socket.emit('startGame', currentRoom);
@@ -398,12 +416,13 @@ const createRoom = () => {
     ruqyahUsed, voteTargets, votes, myVote, lockedPlayers, senjaResult, seerResult,
     eliminatedInfo, ajenganWasiat, countdown, showRoleReveal, setShowRoleReveal,
     transition, chatMessages, chatInput, setChatInput, error, soundEnabled, setSoundEnabled,
-    gameOver, hostRoleInfo, canChat, phaseData, isAlive
+    gameOver, hostRoleInfo, canChat, phaseData, isAlive,
+    isPrivate, setIsPrivate, publicRooms
   };
 
   const actions = {
     createRoom, joinRoom, startGame, endGame, restartGame, kickPlayer,
-    sendNightAction, castVote, activateRuqyah, sendChat
+    sendNightAction, castVote, activateRuqyah, sendChat, showError
   };
 
   // ── Render Overlays ──
@@ -416,7 +435,7 @@ const createRoom = () => {
     />
   );
 
-  if (screen === 'landing') return <LandingScene state={state} ROLES={ROLES} />;
+  if (screen === 'landing') return <LandingScene state={state} actions={actions} ROLES={ROLES} />;
   if (screen === 'create') return <CreateRoomScene state={state} actions={actions} />;
   if (screen === 'join') return <JoinRoomScene state={state} actions={actions} />;
   if (screen === 'lobby') return <LobbyScene state={state} actions={actions} ROLES={ROLES} socket={socket} />;
