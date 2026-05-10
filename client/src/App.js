@@ -354,6 +354,15 @@ const createRoom = () => {
     socket.emit('joinRoom', { roomCode: targetCode.toUpperCase(), username });
   };
 
+  const leaveRoom = () => {
+    if (window.confirm('Yakin rek balik ka menu utama?')) {
+      socket.emit('leaveRoom');
+      setScreen('landing');
+      setCurrentRoom('');
+      setPlayers([]);
+    }
+  };
+
   const startGame = () => socket.emit('startGame', currentRoom);
 
   const endGame = () => {
@@ -421,7 +430,7 @@ const createRoom = () => {
   };
 
   const actions = {
-    createRoom, joinRoom, startGame, endGame, restartGame, kickPlayer,
+    createRoom, joinRoom, leaveRoom, startGame, endGame, restartGame, kickPlayer,
     sendNightAction, castVote, activateRuqyah, sendChat, showError
   };
 

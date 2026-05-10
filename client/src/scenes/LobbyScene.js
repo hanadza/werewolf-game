@@ -8,6 +8,9 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
   return (
     <div className="lobby-screen">
       <div className="lobby-card">
+        <button className="back-btn" onClick={actions.leaveRoom} style={{marginBottom: '20px', display: 'inline-block'}}>
+          ← Balik
+        </button>
         <div className="lobby-header">
           <div className="lobby-title">
             <span className="lobby-icon">⚖️</span>
@@ -34,7 +37,7 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
               <label>👥 Maksimal Pamain ({maxPlayers} urang)</label>
               <div className="slider-container">
                 <input
-                  type="range" min={3} max={20}
+                  type="range" min={4} max={20}
                   value={maxPlayers}
                   onChange={e => {
                     const val = Number(e.target.value);
@@ -47,7 +50,7 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
                   className="slider"
                 />
                 <div className="slider-labels">
-                  <span>3</span>
+                  <span>4</span>
                   <span className="slider-value">{maxPlayers}</span>
                   <span>20</span>
                 </div>
@@ -106,7 +109,7 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
             ))}
           </div>
           <div className="role-requirements">
-            <p>🎮 Minimal 3 pamain pikeun mimitian</p>
+            <p>🎮 Minimal 4 pamain pikeun mimitian</p>
             <p>🔮 Dukun: 4+ pamain</p>
             <p>👴 Kolot: 6+ pamain</p>
             <p>🗝️ Kuncen: 7+ pamain</p>
@@ -115,8 +118,8 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
         </div>
 
         {isHost ? (
-          <button className="btn-primary btn-start" onClick={startGame} disabled={players.length < 3}>
-            {players.length < 3 ? `Kurang ${3 - players.length} pamain deui` : '🎮 Mimitian Kaulinan!'}
+          <button className="btn-primary btn-start" onClick={startGame} disabled={players.length < 4}>
+            {players.length < 4 ? `Kurang ${4 - players.length} pamain deui` : '🎮 Mimitian Kaulinan!'}
           </button>
         ) : (
           <div className="waiting-host">⏳ Ngantosan host mimitian kaulinan...</div>

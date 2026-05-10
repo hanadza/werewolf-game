@@ -36,13 +36,13 @@ export default function CreateRoomScene({ state, actions }) {
           <label>👥 Jumlah Pamain Maksimal ({maxPlayers} urang)</label>
           <div className="slider-container">
             <input
-              type="range" min={3} max={20}
+              type="range" min={4} max={20}
               value={maxPlayers}
               onChange={e => setMaxPlayers(Number(e.target.value))}
               className="slider"
             />
             <div className="slider-labels">
-              <span>3</span>
+              <span>4</span>
               <span className="slider-value">{maxPlayers}</span>
               <span>20</span>
             </div>
