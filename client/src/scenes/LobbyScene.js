@@ -3,7 +3,7 @@ import { getRolePreview } from '../utils/helpers';
 
 export default function LobbyScene({ state, actions, ROLES, socket }) {
   const { currentRoomName, isHost, currentRoom, error, maxPlayers, setMaxPlayers, players, username, isPrivate, setIsPrivate } = state;
-  const { kickPlayer, startGame } = actions;
+  const { kickPlayer, startGame, transferHost } = actions;
 
   return (
     <div className="lobby-screen">
@@ -92,7 +92,10 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
                   )}
                 </span>
                 {isHost && p.username !== username && (
-                  <button className="kick-btn" onClick={() => kickPlayer(p.username)}>✕</button>
+                  <div style={{display: 'flex', gap: '8px'}}>
+                    <button className="kick-btn" style={{borderColor: '#f39c12', color: '#f39c12', background: 'rgba(243, 156, 18, 0.2)'}} onClick={() => transferHost(p.username)}>👑</button>
+                    <button className="kick-btn" onClick={() => kickPlayer(p.username)}>✕</button>
+                  </div>
                 )}
               </li>
             ))}

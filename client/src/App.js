@@ -138,6 +138,13 @@ function App() {
       setIsPrivate(isPrivate);
     });
 
+    socket.on('hostTransferred', ({ newHostUsername }) => {
+      setUsername(prev => {
+        setIsHost(prev === newHostUsername);
+        return prev;
+      });
+    });
+
     socket.on('playerList', setPlayers);
 
     socket.on('hostInfo', ({ username }) => {
@@ -379,6 +386,12 @@ const createRoom = () => {
     }
   };
 
+  const transferHost = (targetUsername) => {
+    if (window.confirm(`Jadikeun ${targetUsername} host anyar?`)) {
+      socket.emit('transferHost', { roomCode: currentRoom, targetUsername });
+    }
+  };
+
   const sendNightAction = (target, actionType = 'default') => {
     socket.emit('nightAction', {
       roomCode: currentRoom,
@@ -430,7 +443,7 @@ const createRoom = () => {
   };
 
   const actions = {
-    createRoom, joinRoom, leaveRoom, startGame, endGame, restartGame, kickPlayer,
+    createRoom, joinRoom, leaveRoom, startGame, endGame, restartGame, kickPlayer, transferHost,
     sendNightAction, castVote, activateRuqyah, sendChat, showError
   };
 

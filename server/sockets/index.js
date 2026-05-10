@@ -377,6 +377,23 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername, isPrivate }
     gameLogic.broadcastPlayers(roomCode);
     gameLogic.broadcastChat(roomCode, '🔄 Host mimitian kaulinan anyar!', 'system');
   });
+  // ── TRANSFER HOST (host only) ──
+  socket.on('transferHost', ({ roomCode, targetUsername }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.host.id !== socket.id) return;
+
+    const targetPlayer = room.players.find(p => p.username === targetUsername);
+    if (targetPlayer) {
+      room.host = { id: targetPlayer.id, username: targetPlayer.username };
+      
+      const newHostSocket = io.sockets.sockets.get(targetPlayer.id);
+      if (newHostSocket) newHostSocket.isHost = true;
+      socket.isHost = false;
+
+      io.to(roomCode).emit('hostTransferred', { newHostUsername: targetPlayer.username });
+      gameLogic.broadcastChat(roomCode, `👑 ${targetPlayer.username} ayeuna jadi host!`, 'system');
+    }
+  });
 
   // ── LEAVE ROOM ──
   socket.on('leaveRoom', () => {
@@ -384,16 +401,30 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername, isPrivate }
     if (roomCode) {
       const room = rooms.get(roomCode);
       if (room) {
+        room.players = room.players.filter(p => p.id !== socket.id);
+        
         if (socket.isHost) {
-          // If host leaves intentionally via button, destroy the room and notify others
-          io.to(roomCode).emit('kicked', { message: 'Host geus kaluar, rohangan ditutup!' });
-          rooms.delete(roomCode);
+          if (room.players.length > 0) {
+            // Transfer host
+            const newHost = room.players[0];
+            room.host = { id: newHost.id, username: newHost.username };
+            const newHostSocket = io.sockets.sockets.get(newHost.id);
+            if (newHostSocket) newHostSocket.isHost = true;
+            
+            io.to(roomCode).emit('hostTransferred', { newHostUsername: newHost.username });
+            gameLogic.broadcastChat(roomCode, `👑 Host sateuacanna kaluar. ${newHost.username} ayeuna jadi host!`, 'system');
+          } else {
+            // Destroy room
+            rooms.delete(roomCode);
+          }
         } else {
-          room.players = room.players.filter(p => p.id !== socket.id);
-          gameLogic.broadcastPlayers(roomCode);
           if (socket.username) {
             gameLogic.broadcastChat(roomCode, `⚠️ ${socket.username} kaluar tina lembur`, 'system');
           }
+        }
+        
+        if (rooms.has(roomCode)) {
+          gameLogic.broadcastPlayers(roomCode);
         }
       }
       socket.leave(roomCode);
@@ -408,17 +439,28 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername, isPrivate }
     if (roomCode) {
       const room = rooms.get(roomCode);
       if (room) {
+        room.players = room.players.filter(p => p.id !== socket.id);
+        
         if (socket.isHost) {
-          // Host disconnect - notify players
-          io.to(roomCode).emit('hostDisconnected', {
-            message: '⚠️ Host kaluar! Kaulinan dihentikan samentara...'
-          });
+          if (room.players.length > 0) {
+            const newHost = room.players[0];
+            room.host = { id: newHost.id, username: newHost.username };
+            const newHostSocket = io.sockets.sockets.get(newHost.id);
+            if (newHostSocket) newHostSocket.isHost = true;
+            
+            io.to(roomCode).emit('hostTransferred', { newHostUsername: newHost.username });
+            gameLogic.broadcastChat(roomCode, `👑 Host sateuacanna terputus. ${newHost.username} ayeuna jadi host!`, 'system');
+          } else {
+            rooms.delete(roomCode);
+          }
         } else {
-          room.players = room.players.filter(p => p.id !== socket.id);
-          gameLogic.broadcastPlayers(roomCode);
           if (socket.username) {
             gameLogic.broadcastChat(roomCode, `⚠️ ${socket.username} kaluar tina lembur`, 'system');
           }
+        }
+        
+        if (rooms.has(roomCode)) {
+          gameLogic.broadcastPlayers(roomCode);
         }
       }
     }
