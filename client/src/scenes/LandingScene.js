@@ -11,7 +11,7 @@ export default function LandingScene({ state, ROLES }) {
         <div className="landing-hero">
           <div className="landing-logo">👹</div>
           <h1 className="landing-title">Sandekala Village</h1>
-          <p className="landing-subtitle">Saha Sanekala di antara urang? saha cing</p>
+          <p className="landing-subtitle">Saha Sanekala di antara urang? saha pak</p>
           <p className="landing-subtitle-id">Siapakah Sanekala di antara kita?</p>
         </div>
 
