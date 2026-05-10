@@ -159,7 +159,7 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername, isPrivate }
     const room = rooms.get(roomCode);
     if (!room) return socket.emit('gameError', { message: 'Rohangan teu kapanggih!' });
     if (room.host.id !== socket.id) return socket.emit('gameError', { message: 'Ngan host anu bisa mimitian!' });
-    if (room.players.length < 3) return socket.emit('gameError', { message: 'Butuh minimal 3 pamain!' });
+    if (room.players.length < 4) return socket.emit('gameError', { message: 'Butuh minimal 4 pamain!' });
 
     // Assign roles
     const roles = gameLogic.assignRoles(room.players.length);
@@ -376,6 +376,30 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername, isPrivate }
 
     gameLogic.broadcastPlayers(roomCode);
     gameLogic.broadcastChat(roomCode, '🔄 Host mimitian kaulinan anyar!', 'system');
+  });
+
+  // ── LEAVE ROOM ──
+  socket.on('leaveRoom', () => {
+    const roomCode = socket.roomCode;
+    if (roomCode) {
+      const room = rooms.get(roomCode);
+      if (room) {
+        if (socket.isHost) {
+          // If host leaves intentionally via button, destroy the room and notify others
+          io.to(roomCode).emit('kicked', { message: 'Host geus kaluar, rohangan ditutup!' });
+          rooms.delete(roomCode);
+        } else {
+          room.players = room.players.filter(p => p.id !== socket.id);
+          gameLogic.broadcastPlayers(roomCode);
+          if (socket.username) {
+            gameLogic.broadcastChat(roomCode, `⚠️ ${socket.username} kaluar tina lembur`, 'system');
+          }
+        }
+      }
+      socket.leave(roomCode);
+      socket.roomCode = null;
+      socket.isHost = false;
+    }
   });
 
   // ── DISCONNECT ──
