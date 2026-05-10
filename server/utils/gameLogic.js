@@ -33,7 +33,8 @@ function getPublicPlayers(room) {
   return room.players.map(p => ({
     username: p.username,
     isAlive: p.isAlive,
-    isLocked: room.lockedPlayers?.includes(p.username) || false
+    isLocked: room.lockedPlayers?.includes(p.username) || false,
+    isHost: room.host && room.host.id === p.id
   }));
 }
 
