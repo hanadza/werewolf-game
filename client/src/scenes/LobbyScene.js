@@ -28,7 +28,9 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
           <div className="lobby-panel">
             <div className="lobby-panel-header">
               <h3>Urang Lembur</h3>
-              <span className="lobby-panel-count">{players.length}/{maxPlayers}</span>
+              <span className="lobby-panel-count">
+                {isHost ? `${players.length}/${maxPlayers}` : `${players.length} urang`}
+              </span>
             </div>
             <ul className="lobby-players-list">
               {players.map((p, i) => (
@@ -54,7 +56,7 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
           </div>
         </div>
 
-        {/* Right: Settings & Actions */}
+        {/* Right: Settings + Roles + Actions */}
         <div className="lobby-v2-right">
           {/* Room Code */}
           <div className="lobby-panel lobby-code-panel">
@@ -63,13 +65,14 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
             <p className="lobby-code-hint">Bagikeun ka babaturan maneh</p>
           </div>
 
-          {/* Host Controls */}
-          {isHost && (
+          {/* Host Controls + Role Info (merged) */}
+          {isHost ? (
             <div className="lobby-panel lobby-settings-panel">
               <div className="lobby-panel-header">
                 <h3>Setelan</h3>
               </div>
 
+              {/* Max Players slider */}
               <div className="form-group" style={{marginBottom: '12px'}}>
                 <label>Maksimal Pamain</label>
                 <div className="slider-container">
@@ -89,11 +92,23 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
                     <span>20</span>
                   </div>
                 </div>
-                <div className="role-preview-info">
-                  {getRolePreview(maxPlayers)}
-                </div>
               </div>
 
+              {/* Role preview (host only, with counts) */}
+              <div className="role-preview-info" style={{marginBottom: '12px'}}>
+                {getRolePreview(maxPlayers)}
+              </div>
+
+              {/* Prerequisites — host only */}
+              <div className="role-req-grid" style={{marginBottom: '14px'}}>
+                <span>Min 4 pamain</span>
+                <span>Dukun: 4+</span>
+                <span>Kolot: 6+</span>
+                <span>Kuncen: 7+</span>
+                <span>Ajengan: 8+</span>
+              </div>
+
+              {/* Private/Public toggle */}
               <label className="toggle-label toggle-modern">
                 <div className="toggle-switch">
                   <input
@@ -115,28 +130,21 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
                 </span>
               </label>
             </div>
+          ) : (
+            /* Non-host: just show role chips, no prereqs, no settings */
+            <div className="lobby-panel">
+              <div className="lobby-panel-header">
+                <h3>Daftar Peran</h3>
+              </div>
+              <div className="role-chips">
+                {Object.entries(ROLES).map(([key, r]) => (
+                  <div key={key} className="role-chip" style={{ borderColor: r.color, background: r.bg }}>
+                    {r.emoji} <span style={{ color: r.color }}>{r.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
-
-          {/* Role Info */}
-          <div className="lobby-panel">
-            <div className="lobby-panel-header">
-              <h3>Daftar Peran</h3>
-            </div>
-            <div className="role-chips">
-              {Object.entries(ROLES).map(([key, r]) => (
-                <div key={key} className="role-chip" style={{ borderColor: r.color, background: r.bg }}>
-                  {r.emoji} <span style={{ color: r.color }}>{r.name}</span>
-                </div>
-              ))}
-            </div>
-            <div className="role-req-grid" style={{marginTop: '8px'}}>
-              <span>Min 4 pamain</span>
-              <span>Dukun: 4+</span>
-              <span>Kolot: 6+</span>
-              <span>Kuncen: 7+</span>
-              <span>Ajengan: 8+</span>
-            </div>
-          </div>
 
           {/* Start */}
           <div className="lobby-start-section">
