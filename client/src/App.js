@@ -5,6 +5,9 @@ import { ROLES, PHASES } from './constants/gameConfig';
 import { playSound, stopAllSounds } from './utils/soundManager';
 import CountdownOverlay from './components/CountdownOverlay';
 import TransitionOverlay from './components/TransitionOverlay';
+import EliminatedOverlay from './components/EliminatedOverlay';
+import KidnapOverlay from './components/KidnapOverlay';
+import EncyclopediaModal from './components/EncyclopediaModal';
 import LandingScene from './scenes/LandingScene';
 import CreateRoomScene from './scenes/CreateRoomScene';
 import JoinRoomScene from './scenes/JoinRoomScene';
@@ -69,6 +72,10 @@ function App() {
   // ── UI State ──
   const [countdown, setCountdown] = useState(null);
   const [showRoleReveal, setShowRoleReveal] = useState(false);
+  const [showEliminatedOverlay, setShowEliminatedOverlay] = useState(false);
+  const [showKidnapOverlay, setShowKidnapOverlay] = useState(false);
+  const [showEncyclopedia, setShowEncyclopedia] = useState(false);
+  const [kidnapTarget, setKidnapTarget] = useState(null);
   const [transition, setTransition] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
@@ -200,7 +207,6 @@ function App() {
   setPhaseDuration(duration || 60);
   setPhaseMessage(message || '');
   setActionConfirmed('');
-  setSeerResult(null);
   setEliminatedInfo(null);
   setKuncenMode('');
 
@@ -210,6 +216,7 @@ function App() {
     setVoteTargets(voteTargets || []);
     setLockedPlayers(lockedPlayers || []);
     setSenjaResult(null);
+    setSeerResult(null);
     setIsFirstDay(isFirstDay || false);
     stopAllSounds();
     play('siang');
@@ -225,6 +232,10 @@ function App() {
 
       if (phase === 'malam') {
         setSenjaResult({ killed, protectedBy, lockedPlayer });
+        if (killed) {
+          setKidnapTarget(killed);
+          setShowKidnapOverlay(true);
+        }
         stopAllSounds();
         play('malam');
         if (killed) play('eliminated');
@@ -288,6 +299,7 @@ function App() {
     socket.on('playerEliminated', ({ username, role, players }) => {
       setPlayers(players);
       setEliminatedInfo({ username, role });
+      setShowEliminatedOverlay(true);
       play('eliminated');
     });
 
@@ -447,24 +459,50 @@ const createRoom = () => {
     sendNightAction, castVote, activateRuqyah, sendChat, showError
   };
 
-  // ── Render Overlays ──
-  if (countdown !== null) return <CountdownOverlay count={countdown} />;
-  if (transition) return (
-    <TransitionOverlay
-      from={transition.from}
-      to={transition.to}
-      duration={transition.duration}
-    />
+  return (
+    <>
+      {showEliminatedOverlay && eliminatedInfo && (
+        <EliminatedOverlay 
+          username={eliminatedInfo.username} 
+          role={eliminatedInfo.role} 
+          onDone={() => setShowEliminatedOverlay(false)} 
+        />
+      )}
+      {showKidnapOverlay && kidnapTarget && (
+        <KidnapOverlay 
+          username={kidnapTarget} 
+          onDone={() => setShowKidnapOverlay(false)} 
+        />
+      )}
+
+      {countdown !== null && <CountdownOverlay count={countdown} />}
+      {transition !== null && (
+        <TransitionOverlay
+          from={transition.from}
+          to={transition.to}
+          duration={transition.duration}
+        />
+      )}
+
+      {screen === 'landing' && <LandingScene state={state} actions={actions} ROLES={ROLES} />}
+      {screen === 'create' && <CreateRoomScene state={state} actions={actions} />}
+      {screen === 'join' && <JoinRoomScene state={state} actions={actions} />}
+      {screen === 'lobby' && <LobbyScene state={state} actions={actions} ROLES={ROLES} socket={socket} />}
+      {screen === 'game' && <GameScene state={state} actions={actions} ROLES={ROLES} PHASES={PHASES} chatEndRef={chatEndRef} username={username} />}
+      {screen === 'gameover' && <GameOverScene state={state} actions={actions} ROLES={ROLES} />}
+
+      {/* Floating Encyclopedia Button */}
+      {screen === 'landing' && (
+        <button className="encyclopedia-floating-btn" onClick={() => setShowEncyclopedia(true)} title="Ensiklopedia">
+          <span className="icon">📖</span>
+          <span className="text">Info</span>
+        </button>
+      )}
+
+      {/* Encyclopedia Modal */}
+      {showEncyclopedia && <EncyclopediaModal onClose={() => setShowEncyclopedia(false)} />}
+    </>
   );
-
-  if (screen === 'landing') return <LandingScene state={state} actions={actions} ROLES={ROLES} />;
-  if (screen === 'create') return <CreateRoomScene state={state} actions={actions} />;
-  if (screen === 'join') return <JoinRoomScene state={state} actions={actions} />;
-  if (screen === 'lobby') return <LobbyScene state={state} actions={actions} ROLES={ROLES} socket={socket} />;
-  if (screen === 'game') return <GameScene state={state} actions={actions} ROLES={ROLES} PHASES={PHASES} chatEndRef={chatEndRef} username={username} />;
-  if (screen === 'gameover') return <GameOverScene state={state} actions={actions} ROLES={ROLES} />;
-
-  return null;
 }
 
 export default App;
