@@ -1,31 +1,27 @@
 import React from 'react';
 import { getRolePreview } from '../utils/helpers';
+import SceneTopbar from '../components/SceneTopbar';
 
 export default function CreateRoomScene({ state, actions }) {
-  const { setScreen, error, username, setUsername, roomName, setRoomName, maxPlayers, setMaxPlayers, isPrivate, setIsPrivate } = state;
+  const { setScreen, error, roomName, setRoomName, maxPlayers, setMaxPlayers, isPrivate, setIsPrivate } = state;
   const { createRoom } = actions;
 
   return (
     <div className="form-screen">
-      <div className="form-card">
-        <button className="back-btn" onClick={() => setScreen('landing')}>
-          ← Balik
-        </button>
+      <SceneTopbar onBack={() => setScreen('landing')} state={state} />
 
+      <div className="form-card">
         <div className="form-header">
-          <div className="form-icon">🏠</div>
           <h2>Jieun Rohangan Anyar</h2>
-          <p>Buat ruangan baru untuk bermain</p>
+          <p>Siapkeun rohangan pikeun maén bareng</p>
         </div>
 
         {error && <div className="error-box">{error}</div>}
 
-
-
         <div className="form-group">
-          <label>🏠 Ngaran Rohangan (Nama Ruangan)</label>
+          <label>Ngaran Rohangan</label>
           <input
-            placeholder="Lebetkeun ngaran rohangan..."
+            placeholder="Contoh: Rohangan Seru..."
             value={roomName}
             onChange={e => setRoomName(e.target.value)}
             maxLength={30}
@@ -33,7 +29,7 @@ export default function CreateRoomScene({ state, actions }) {
         </div>
 
         <div className="form-group">
-          <label>👥 Jumlah Pamain Maksimal ({maxPlayers} urang)</label>
+          <label>Jumlah Pamain Maksimal</label>
           <div className="slider-container">
             <input
               type="range" min={4} max={20}
@@ -43,7 +39,7 @@ export default function CreateRoomScene({ state, actions }) {
             />
             <div className="slider-labels">
               <span>4</span>
-              <span className="slider-value">{maxPlayers}</span>
+              <span className="slider-value">{maxPlayers} urang</span>
               <span>20</span>
             </div>
           </div>
@@ -52,19 +48,27 @@ export default function CreateRoomScene({ state, actions }) {
           </div>
         </div>
 
-        <div className="form-group row-group">
-          <label className="toggle-label">
-            <input 
-              type="checkbox" 
-              checked={isPrivate} 
-              onChange={e => setIsPrivate(e.target.checked)} 
-            />
-            <span className="toggle-text">🔒 Jieun Rohangan Private (Teu katingali di Landing Page)</span>
+        <div className="form-group">
+          <label className="toggle-label toggle-modern">
+            <div className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={isPrivate}
+                onChange={e => setIsPrivate(e.target.checked)}
+              />
+              <span className="toggle-track"></span>
+            </div>
+            <span className="toggle-text">
+              {isPrivate ? 'Private' : 'Public'}
+              <span className="toggle-hint">
+                {isPrivate ? 'Ngan bisa asup ku kode' : 'Katingali di landing page'}
+              </span>
+            </span>
           </label>
         </div>
 
         <button className="btn-primary" onClick={createRoom}>
-          🏠 Jieun Rohangan
+          Jieun Rohangan
         </button>
       </div>
     </div>

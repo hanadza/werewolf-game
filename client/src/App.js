@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import io from 'socket.io-client';
 import './App.css';
 import { ROLES, PHASES } from './constants/gameConfig';
-import { playSound, stopAllSounds } from './utils/soundManager';
+import { playSound, stopAllSounds, setVolume as setSoundVolume } from './utils/soundManager';
 import CountdownOverlay from './components/CountdownOverlay';
 import TransitionOverlay from './components/TransitionOverlay';
 import EliminatedOverlay from './components/EliminatedOverlay';
@@ -81,6 +81,7 @@ function App() {
   const [chatInput, setChatInput] = useState('');
   const [error, setError] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [volume, setVolumeState] = useState(0.4);
   const [gameOver, setGameOver] = useState(null);
 
   // ── Host State ──
@@ -98,6 +99,14 @@ function App() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
+
+  const handleVolumeChange = useCallback((val) => {
+    const v = Math.max(0, Math.min(1, val));
+    setVolumeState(v);
+    setSoundVolume(v);
+    if (v === 0) setSoundEnabled(false);
+    else if (!soundEnabled) setSoundEnabled(true);
+  }, [soundEnabled]);
 
   const play = useCallback((name) => {
     if (soundEnabled) playSound(name);
@@ -451,7 +460,8 @@ const createRoom = () => {
     eliminatedInfo, ajenganWasiat, countdown, showRoleReveal, setShowRoleReveal,
     transition, chatMessages, chatInput, setChatInput, error, soundEnabled, setSoundEnabled,
     gameOver, hostRoleInfo, canChat, phaseData, isAlive,
-    isPrivate, setIsPrivate, publicRooms
+    isPrivate, setIsPrivate, publicRooms, showEncyclopedia, setShowEncyclopedia,
+    volume, handleVolumeChange
   };
 
   const actions = {
@@ -491,8 +501,8 @@ const createRoom = () => {
       {screen === 'game' && <GameScene state={state} actions={actions} ROLES={ROLES} PHASES={PHASES} chatEndRef={chatEndRef} username={username} />}
       {screen === 'gameover' && <GameOverScene state={state} actions={actions} ROLES={ROLES} />}
 
-      {/* Floating Encyclopedia Button */}
-      {screen === 'landing' && (
+      {/* Floating Encyclopedia Button - game screen only (other scenes use SceneTopbar) */}
+      {screen === 'game' && (
         <button className="encyclopedia-floating-btn" onClick={() => setShowEncyclopedia(true)} title="Ensiklopedia">
           <span className="icon">📖</span>
           <span className="text">Info</span>
