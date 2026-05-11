@@ -1,86 +1,114 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import LandingHero from '../components/landing/LandingHero';
+import LandingMenu from '../components/landing/LandingMenu';
+import PublicRoomsList from '../components/landing/PublicRoomsList';
 
 export default function LandingScene({ state, actions, ROLES }) {
-  const { setScreen, soundEnabled, setSoundEnabled, username, setUsername, publicRooms, error } = state;
-  const { joinRoom } = actions;
+  const { 
+    setScreen, soundEnabled, setSoundEnabled, username, setUsername, 
+    publicRooms, error, joinCode, setJoinCode, volume, handleVolumeChange 
+  } = state;
+  const { joinRoom, showError } = actions;
+  const [showVolume, setShowVolume] = useState(false);
+  const volumeRef = useRef(null);
+
+  // Close volume popup on outside click
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (volumeRef.current && !volumeRef.current.contains(e.target)) {
+        setShowVolume(false);
+      }
+    };
+    if (showVolume) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showVolume]);
+
+  const volumeIcon = !soundEnabled || volume === 0 ? '🔇' : volume < 0.4 ? '🔈' : volume < 0.7 ? '🔉' : '🔊';
 
   return (
-    <div className="landing-screen">
+    <div className="landing-screen-v2">
       <div className="landing-bg-overlay" />
 
-      <div className="landing-content">
-        <div className="landing-hero">
-          <div className="landing-logo">👹</div>
-          <h1 className="landing-title">Sandekala Village</h1>
-          <p className="landing-subtitle">Saha Sanekala di antara urang?</p>
-        </div>
+      {/* Top-Right Utility Buttons */}
+      <div className="landing-top-utils">
+        <button className="landing-util-btn" onClick={() => state.setShowEncyclopedia(true)}>
+          📖 <span className="util-label">Info</span>
+        </button>
 
-        {error && <div className="error-box" style={{marginBottom: '20px'}}>{error}</div>}
-
-        <div className="landing-form-group">
-          <input
-            className="landing-username-input"
-            placeholder="👤 Lebetkeun ngaran maneh..."
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            maxLength={20}
-          />
-        </div>
-
-        <div className="landing-actions">
-          <button className="btn-primary btn-large" onClick={() => {
-            if (!username.trim()) return actions.showError('Eusi ngaran heula!');
-            setScreen('create');
-          }}>
-            🏠 Jieun Rohangan
+        <div className="volume-control-wrap" ref={volumeRef}>
+          <button 
+            className={`landing-util-btn ${showVolume ? 'active' : ''}`} 
+            onClick={() => setShowVolume(!showVolume)}
+          >
+            {volumeIcon}
           </button>
-          <button className="btn-secondary btn-large" onClick={() => {
-            if (!username.trim()) return actions.showError('Eusi ngaran heula!');
-            setScreen('join');
-          }}>
-            🚪 Asup Rohangan (Kode)
-          </button>
-        </div>
 
-        <div className="public-rooms-container">
-          <h3 className="public-rooms-title">🌍 Rohangan Public</h3>
-          {publicRooms.length > 0 ? (
-            <div className="public-rooms-list">
-              {publicRooms.map((room) => {
-                const isFull = room.playersCount >= room.maxPlayers;
-                const isPlaying = room.phase !== 'lobby';
-                const canJoin = !isFull && !isPlaying;
-
-                return (
-                  <div key={room.code} className={`public-room-item ${!canJoin ? 'disabled' : ''}`} onClick={() => {
-                    if (!canJoin) return;
-                    if (!username.trim()) return actions.showError('Eusi ngaran heula!');
-                    joinRoom(room.code);
-                  }}>
-                    <div className="room-info">
-                      <span className="room-name">{room.name}</span>
-                      <span className="room-players">👥 {room.playersCount}/{room.maxPlayers}</span>
-                    </div>
-                    {isPlaying ? (
-                      <span className="room-status-badge" style={{fontSize:'0.75rem', opacity: 0.7, fontStyle: 'italic', color: '#f39c12'}}>Sedang Main</span>
-                    ) : isFull ? (
-                      <span className="room-status-badge" style={{fontSize:'0.75rem', opacity: 0.7, fontStyle: 'italic', color: '#e94560'}}>Penuh</span>
-                    ) : (
-                      <button className="btn-join-small">Asup</button>
-                    )}
-                  </div>
-                );
-              })}
+          {showVolume && (
+            <div className="volume-popup">
+              <div className="volume-popup-header">
+                <span className="volume-popup-label">Volume</span>
+                <span className="volume-popup-value">{Math.round((soundEnabled ? volume : 0) * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={soundEnabled ? Math.round(volume * 100) : 0}
+                onChange={(e) => {
+                  const val = Number(e.target.value) / 100;
+                  handleVolumeChange(val);
+                  if (val > 0 && !soundEnabled) setSoundEnabled(true);
+                }}
+                className="volume-slider"
+              />
+              <button 
+                className="volume-mute-btn"
+                onClick={() => {
+                  setSoundEnabled(!soundEnabled);
+                  if (soundEnabled) handleVolumeChange(0);
+                  else handleVolumeChange(0.4);
+                }}
+              >
+                {soundEnabled ? '🔇 Mute' : '🔊 Unmute'}
+              </button>
             </div>
-          ) : (
-            <p className="no-rooms-text">Teu aya rohangan public anu sayogi.</p>
           )}
         </div>
+      </div>
 
-        <button className="sound-toggle-btn" onClick={() => setSoundEnabled(!soundEnabled)}>
-          {soundEnabled ? '🔊' : '🔇'}
-        </button>
+      <div className="landing-layout">
+        {/* Hero - Top */}
+        <LandingHero />
+
+        {error && <div className="error-box landing-error">{error}</div>}
+
+        {/* Main Content - 2 Column on Desktop */}
+        <div className="landing-columns">
+          {/* Left Column - Menu */}
+          <div className="landing-col-left">
+            <LandingMenu
+              username={username}
+              setUsername={setUsername}
+              setScreen={setScreen}
+              joinRoom={joinRoom}
+              showError={showError}
+              joinCode={joinCode}
+              setJoinCode={setJoinCode}
+            />
+          </div>
+
+          {/* Right Column - Rooms */}
+          <div className="landing-col-right">
+            <PublicRoomsList
+              publicRooms={publicRooms}
+              username={username}
+              joinRoom={joinRoom}
+              showError={showError}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
