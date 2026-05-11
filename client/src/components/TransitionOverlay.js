@@ -20,7 +20,10 @@ export default function TransitionOverlay({ from, to, duration }) {
 
   return (
     <div className="fullscreen-overlay transition-overlay"
-      style={{ background: phaseData.bg }}>
+      style={{ 
+        background: phaseData.bg,
+        animationDuration: `${duration}s`
+      }}>
       <div className="transition-content">
         <div className="transition-emoji">{phaseData.emoji}</div>
         <div className="transition-label" style={{ color: phaseData.color }}>

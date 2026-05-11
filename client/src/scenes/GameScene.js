@@ -421,15 +421,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
             </div>
           )}
 
-          {/* Host Controls in Game */}
-          {isHost && (
-            <div className="panel-card host-game-controls">
-              <div className="action-label">👑 KONTROL HOST</div>
-              <button className="btn-danger" onClick={endGame}>
-                ⏹️ Akhiri Kaulinan
-              </button>
-            </div>
-          )}
+
         </div>
 
         {/* ── RIGHT PANEL ── */}
@@ -489,7 +481,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
               )}
             </div>
 
-            <div className="chat-messages" ref={chatEndRef}>
+            <div className="chat-messages">
               {chatMessages.map((msg, i) => (
                 <div key={i} className={`chat-msg chat-${msg.type}`}>
                   {msg.type !== 'system' && (

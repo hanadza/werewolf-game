@@ -80,8 +80,16 @@ body {
 
 /* Transition */
 .transition-overlay {
-  backdrop-filter: blur(10px);
-  transition: background 1s ease;
+  backdrop-filter: blur(20px);
+  z-index: 10000;
+  animation: theatricalFade ease-in-out forwards;
+}
+
+@keyframes theatricalFade {
+  0% { opacity: 0; transform: scale(1.05); }
+  15% { opacity: 1; transform: scale(1); }
+  85% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.05); }
 }
 
 .transition-content {
@@ -1880,4 +1888,263 @@ input::placeholder {
 .no-rooms-text { opacity: 0.6; font-size: 0.9rem; font-style: italic; }
 
 .public-room-item.disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ============================================================
+   NEW SCENES OVERLAYS (Eliminated & Kidnap)
+   ============================================================ */
+
+.eliminated-overlay {
+  background: rgba(139, 0, 0, 0.8) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+.eliminated-card-content {
+  border-color: #e94560 !important;
+  background: rgba(20, 0, 0, 0.8) !important;
+}
+
+.eliminated-emoji {
+  animation: slam 0.5s ease-in forwards;
+}
+
+@keyframes slam {
+  0% { transform: scale(3) rotate(-30deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.eliminated-name {
+  color: #e94560;
+  text-shadow: 0 0 15px rgba(233, 69, 96, 0.5);
+}
+
+.kidnap-overlay {
+  background: rgba(0, 0, 0, 0.95) !important;
+  backdrop-filter: blur(25px) !important;
+}
+
+.kidnap-card-content {
+  border-color: #660000 !important;
+  background: rgba(10, 0, 0, 0.9) !important;
+}
+
+.kidnap-emoji {
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0) scale(1.1); }
+  25% { transform: translateX(-10px) scale(1.1); }
+  50% { transform: translateX(10px) scale(1.1); }
+  75% { transform: translateX(-10px) scale(1.1); }
+}
+
+.kidnap-name {
+  color: #c0392b;
+  text-shadow: 0 0 10px #c0392b;
+  animation: fadePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes fadePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ============================================================
+   ENCYCLOPEDIA FEATURE
+   ============================================================ */
+
+.encyclopedia-floating-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background: rgba(30, 40, 60, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.encyclopedia-floating-btn:hover {
+  background: rgba(50, 70, 100, 0.9);
+  transform: translateY(-2px) scale(1.05);
+  border-color: #f39c12;
+}
+
+.encyclopedia-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.encyclopedia-modal {
+  background: linear-gradient(145deg, #1a1a2e, #16213e);
+  border: 2px solid #e94560;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPop {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.encyclopedia-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.encyclopedia-close:hover {
+  opacity: 1;
+  color: #e94560;
+}
+
+.encyclopedia-title {
+  text-align: center;
+  margin: 20px 0 15px;
+  color: #f39c12;
+  font-family: 'Creepster', cursive;
+  letter-spacing: 2px;
+}
+
+.encyclopedia-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.encyclopedia-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: white;
+  padding: 12px 10px;
+  cursor: pointer;
+  font-weight: bold;
+  opacity: 0.6;
+  transition: all 0.2s;
+}
+
+.encyclopedia-tab:hover {
+  opacity: 0.8;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.encyclopedia-tab.active {
+  opacity: 1;
+  color: #e94560;
+  border-bottom: 3px solid #e94560;
+}
+
+.encyclopedia-content {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.encyclopedia-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+
+@media (min-width: 500px) {
+  .encyclopedia-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.encyclopedia-role-card {
+  border: 1px solid;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.encyclopedia-role-header {
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.encyclopedia-role-desc {
+  padding: 10px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+.encyclopedia-phase-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.encyclopedia-phase-header {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.encyclopedia-phase-desc {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.encyclopedia-guide h3 {
+  color: #f39c12;
+  margin-bottom: 15px;
+}
+
+.encyclopedia-guide ul {
+  padding-left: 20px;
+}
+
+.encyclopedia-guide li {
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 500px) {
+  .encyclopedia-floating-btn .text {
+    display: none;
+  }
+}
 .public-room-item.disabled:hover { background: rgba(255,255,255,0.05); transform: none; }
