@@ -8,16 +8,13 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
   return (
     <div className="lobby-screen">
       <div className="lobby-card">
-        <button className="back-btn" onClick={actions.leaveRoom} style={{marginBottom: '20px', display: 'inline-block'}}>
-          ← Balik
-        </button>
+        {/* Header */}
         <div className="lobby-header">
           <div className="lobby-title">
             <span className="lobby-icon">⚖️</span>
             <div>
-              <h1>Sandekala Village</h1>
+              <h1>{currentRoomName}</h1>
               <div style={{display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap'}}>
-                <p className="lobby-room-name" style={{margin: 0}}>{currentRoomName}</p>
                 <span className={`visibility-badge ${isPrivate ? 'private' : 'public'}`}>
                   {isPrivate ? '🔒 Private' : '🌍 Public'}
                 </span>
@@ -27,19 +24,22 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
           {isHost && <span className="host-badge">👑 Host</span>}
         </div>
 
+        {/* Room Code */}
         <div className="room-code-section">
-          <p className="room-code-label">Kode Rohangan:</p>
+          <p className="room-code-label">Kode Rohangan</p>
           <div className="room-code-display">{currentRoom}</div>
-          <p className="room-code-hint">Bagikeun kode ieu ka babaturan maneh</p>
+          <p className="room-code-hint">Bagikeun kode ieu ka babaturan</p>
         </div>
 
         {error && <div className="error-box">{error}</div>}
 
+        {/* Host Controls */}
         {isHost && (
           <div className="host-controls">
             <div className="host-controls-title">⚙️ Setelan Host</div>
-            <div className="form-group">
-              <label>👥 Maksimal Pamain ({maxPlayers} urang)</label>
+            
+            <div className="form-group" style={{marginBottom: '12px'}}>
+              <label>👥 Maksimal Pamain</label>
               <div className="slider-container">
                 <input
                   type="range" min={4} max={20}
@@ -56,7 +56,7 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
                 />
                 <div className="slider-labels">
                   <span>4</span>
-                  <span className="slider-value">{maxPlayers}</span>
+                  <span className="slider-value">{maxPlayers} urang</span>
                   <span>20</span>
                 </div>
               </div>
@@ -65,8 +65,8 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
               </div>
             </div>
 
-            <div className="form-group row-group">
-              <label className="toggle-label">
+            <label className="toggle-label toggle-modern">
+              <div className="toggle-switch">
                 <input 
                   type="checkbox" 
                   checked={isPrivate} 
@@ -79,12 +79,19 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
                     });
                   }} 
                 />
-                <span className="toggle-text">🔒 Rohangan Private (Teu katingali di Landing Page)</span>
-              </label>
-            </div>
+                <span className="toggle-track"></span>
+              </div>
+              <span className="toggle-text">
+                {isPrivate ? '🔒 Private' : '🌍 Public'}
+                <span className="toggle-hint">
+                  {isPrivate ? 'Ngan bisa asup ku kode' : 'Katingali di landing page'}
+                </span>
+              </span>
+            </label>
           </div>
         )}
 
+        {/* Players */}
         <div className="players-section">
           <h3>👥 Urang Lembur ({players.length}/{maxPlayers})</h3>
           <ul className="players-list">
@@ -96,13 +103,13 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
                     <span className="you-badge">Maneh</span>
                   )}
                   {p.isHost && (
-                    <span className="host-badge" style={{ marginLeft: '8px', padding: '2px 6px', fontSize: '0.7rem', flexShrink: 0 }}>👑 Host</span>
+                    <span className="host-badge" style={{ marginLeft: '8px', padding: '2px 6px', fontSize: '0.7rem', flexShrink: 0 }}>👑</span>
                   )}
                 </span>
                 {isHost && p.username !== username && (
-                  <div style={{display: 'flex', gap: '8px'}}>
-                    <button className="kick-btn" style={{borderColor: '#f39c12', color: '#f39c12', background: 'rgba(243, 156, 18, 0.2)'}} onClick={() => transferHost(p.username)}>👑</button>
-                    <button className="kick-btn" onClick={() => kickPlayer(p.username)}>✕</button>
+                  <div style={{display: 'flex', gap: '6px'}}>
+                    <button className="kick-btn" style={{borderColor: '#f39c12', color: '#f39c12', background: 'rgba(243, 156, 18, 0.2)'}} onClick={() => transferHost(p.username)} title="Transfer Host">👑</button>
+                    <button className="kick-btn" onClick={() => kickPlayer(p.username)} title="Kick">✕</button>
                   </div>
                 )}
               </li>
@@ -110,6 +117,7 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
           </ul>
         </div>
 
+        {/* Role Info - Compact */}
         <div className="role-info-section">
           <h3>📋 Peran anu bakal aya:</h3>
           <div className="role-chips">
@@ -120,21 +128,29 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
             ))}
           </div>
           <div className="role-requirements">
-            <p>🎮 Minimal 4 pamain pikeun mimitian</p>
-            <p>🔮 Dukun: 4+ pamain</p>
-            <p>👴 Kolot: 6+ pamain</p>
-            <p>🗝️ Kuncen: 7+ pamain</p>
-            <p>🕌 Ajengan: 8+ pamain</p>
+            <div className="role-req-grid">
+              <span>🎮 Min 4 pamain</span>
+              <span>🔮 Dukun: 4+</span>
+              <span>👴 Kolot: 6+</span>
+              <span>🗝️ Kuncen: 7+</span>
+              <span>🕌 Ajengan: 8+</span>
+            </div>
           </div>
         </div>
 
-        {isHost ? (
-          <button className="btn-primary btn-start" onClick={startGame} disabled={players.length < 4}>
-            {players.length < 4 ? `Kurang ${4 - players.length} pamain deui` : '🎮 Mimitian Kaulinan!'}
+        {/* Actions */}
+        <div className="lobby-actions">
+          {isHost ? (
+            <button className="btn-primary btn-start" onClick={startGame} disabled={players.length < 4}>
+              {players.length < 4 ? `Kurang ${4 - players.length} pamain deui` : '🎮 Mimitian Kaulinan!'}
+            </button>
+          ) : (
+            <div className="waiting-host">⏳ Ngantosan host mimitian kaulinan...</div>
+          )}
+          <button className="btn-danger" onClick={actions.leaveRoom} style={{marginTop: '8px'}}>
+            ← Kaluar Rohangan
           </button>
-        ) : (
-          <div className="waiting-host">⏳ Ngantosan host mimitian kaulinan...</div>
-        )}
+        </div>
       </div>
     </div>
   );
