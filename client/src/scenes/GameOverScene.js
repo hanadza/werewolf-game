@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function GameOverScene({ state, actions, ROLES }) {
   const { gameOver, isHost } = state;
-  const { restartGame, endGame, leaveRoom } = actions;
+  const { endGame, leaveRoom } = actions;
 
   const isWin = gameOver?.winner === 'warga';
 
@@ -35,33 +35,28 @@ export default function GameOverScene({ state, actions, ROLES }) {
               return (
                 <div key={i} className={`role-reveal-item ${!p.isAlive ? 'dead' : ''}`} style={{ borderColor: r?.color }}>
                   <span>{p.isAlive ? '👤' : '💀'} {p.username}</span>
-                  <span style={{ color: r?.color }}>
-                    {r?.emoji} {r?.name}
-                  </span>
+                  <span style={{ color: r?.color }}>{r?.emoji} {r?.name}</span>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Actions */}
-        {isHost ? (
-          <div className="gameover-host-controls">
-            <button className="btn-primary" onClick={restartGame}>Ulin Deui!</button>
-            <button className="btn-secondary" onClick={endGame}>Balik ka Lobby</button>
-            <button className="btn-danger" onClick={leaveRoom}>Kaluar Rohangan</button>
-          </div>
-        ) : (
-          <div className="gameover-player-controls">
-            <div className="waiting-host">Ngantosan host...</div>
-            <button className="btn-secondary" style={{marginTop: '12px'}} onClick={() => window.location.reload()}>
-              Balik ka Lobby
+        {/* Actions — same for host and player */}
+        <div className="gameover-actions">
+          {isHost ? (
+            <button className="btn-primary" onClick={endGame}>
+              Balik ka Room
             </button>
-            <button className="btn-danger" style={{marginTop: '8px'}} onClick={leaveRoom}>
-              Kaluar Rohangan
+          ) : (
+            <button className="btn-primary" disabled style={{opacity: 0.5, cursor: 'not-allowed'}}>
+              Ngantosan host...
             </button>
-          </div>
-        )}
+          )}
+          <button className="btn-danger" onClick={leaveRoom}>
+            Kaluar Permainan
+          </button>
+        </div>
 
       </div>
     </div>
