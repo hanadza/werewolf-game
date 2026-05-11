@@ -958,7 +958,380 @@ body {
 }
 
 /* ============================================================
-   LOBBY SCREEN
+   SCENE TOPBAR (Back + Info buttons)
+   ============================================================ */
+.scene-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.topbar-btn {
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(15px);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+  pointer-events: auto;
+}
+
+.topbar-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  border-color: rgba(243, 156, 18, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.topbar-btn.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(243, 156, 18, 0.4);
+  color: white;
+}
+
+.scene-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+/* Volume popup anchored to scene topbar */
+.scene-topbar-right .volume-control-wrap {
+  position: relative;
+}
+
+.scene-topbar-right .volume-popup {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 100;
+}
+
+/* ============================================================
+   LOBBY SCREEN V2 — 2-Column Layout
+   ============================================================ */
+.lobby-screen-v2 {
+  height: 100vh;
+  background: linear-gradient(135deg, #0d0d1a 0%, #1a0a2e 50%, #0a1628 100%);
+  padding: 60px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.lobby-v2-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+  flex-shrink: 0;
+}
+
+.lobby-v2-icon {
+  font-size: 1.8rem;
+}
+
+.lobby-v2-title {
+  font-size: 1.6rem;
+  font-weight: 900;
+  background: linear-gradient(45deg, #e94560, #f39c12);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.lobby-v2-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.lobby-v2-left,
+.lobby-v2-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+/* Make left column's panel stretch and player list scroll */
+.lobby-v2-left .lobby-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.lobby-players-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.lobby-players-list::-webkit-scrollbar {
+  width: 3px;
+}
+
+.lobby-players-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+/* Right column scrollable if needed */
+.lobby-v2-right {
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.lobby-v2-right::-webkit-scrollbar {
+  width: 3px;
+}
+
+.lobby-v2-right::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+/* Lobby Panels */
+.lobby-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.lobby-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.lobby-panel-header h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.lobby-panel-count {
+  font-size: 0.82rem;
+  color: #f39c12;
+  font-weight: 700;
+  background: rgba(243, 156, 18, 0.15);
+  padding: 3px 10px;
+  border-radius: 10px;
+}
+
+/* Player List */
+.lobby-players-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lobby-player-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+
+.lobby-player-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.lobby-player-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lobby-player-avatar {
+  font-size: 1.1rem;
+}
+
+.lobby-player-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.lobby-host-tag {
+  font-size: 0.85rem;
+}
+
+.lobby-player-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.lobby-action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.lobby-action-btn.transfer {
+  border-color: rgba(243, 156, 18, 0.4);
+  background: rgba(243, 156, 18, 0.1);
+  color: #f39c12;
+}
+
+.lobby-action-btn.transfer:hover {
+  background: rgba(243, 156, 18, 0.25);
+}
+
+.lobby-action-btn.kick {
+  border-color: rgba(233, 69, 96, 0.4);
+  background: rgba(233, 69, 96, 0.1);
+  color: #e94560;
+}
+
+.lobby-action-btn.kick:hover {
+  background: rgba(233, 69, 96, 0.25);
+}
+
+.lobby-empty-players {
+  text-align: center;
+  padding: 20px;
+  opacity: 0.4;
+  font-style: italic;
+  font-size: 0.88rem;
+}
+
+/* Code Panel */
+.lobby-code-panel {
+  text-align: center;
+}
+
+.lobby-code-label {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.lobby-code-display {
+  font-family: monospace;
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: 8px;
+  background: linear-gradient(45deg, #e94560, #f39c12);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  margin-bottom: 6px;
+}
+
+.lobby-code-hint {
+  font-size: 0.75rem;
+  opacity: 0.4;
+}
+
+/* Settings Panel */
+.lobby-settings-panel {
+  border-color: rgba(243, 156, 18, 0.15);
+}
+
+/* Start Section */
+.lobby-start-section {
+  margin-top: 4px;
+}
+
+/* Lobby V2 Responsive */
+@media (max-width: 768px) {
+  .lobby-screen-v2 {
+    height: auto;
+    min-height: 100vh;
+    padding: 56px 12px 12px;
+    overflow: auto;
+  }
+
+  .lobby-v2-header {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .lobby-v2-icon {
+    font-size: 1.4rem;
+  }
+
+  .lobby-v2-title {
+    font-size: 1.3rem;
+  }
+
+  .lobby-v2-columns {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .lobby-v2-right {
+    overflow-y: visible;
+  }
+
+  .lobby-panel {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .lobby-code-display {
+    font-size: 1.8rem;
+    letter-spacing: 6px;
+  }
+
+  .scene-topbar {
+    padding: 10px 14px;
+  }
+
+  .topbar-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+/* ============================================================
+   LOBBY SCREEN (Legacy - kept for compatibility)
    ============================================================ */
 .lobby-screen {
   min-height: 100vh;

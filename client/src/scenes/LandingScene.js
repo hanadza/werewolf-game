@@ -32,7 +32,7 @@ export default function LandingScene({ state, actions, ROLES }) {
       {/* Top-Right Utility Buttons */}
       <div className="landing-top-utils">
         <button className="landing-util-btn" onClick={() => state.setShowEncyclopedia(true)}>
-          📖 <span className="util-label">Info</span>
+          <span className="util-label">Info</span>
         </button>
 
         <div className="volume-control-wrap" ref={volumeRef}>

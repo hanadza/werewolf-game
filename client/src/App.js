@@ -501,8 +501,8 @@ const createRoom = () => {
       {screen === 'game' && <GameScene state={state} actions={actions} ROLES={ROLES} PHASES={PHASES} chatEndRef={chatEndRef} username={username} />}
       {screen === 'gameover' && <GameOverScene state={state} actions={actions} ROLES={ROLES} />}
 
-      {/* Floating Encyclopedia Button - only for non-landing screens */}
-      {screen !== 'landing' && screen !== 'game' && screen !== 'gameover' && (
+      {/* Floating Encyclopedia Button - game screen only (other scenes use SceneTopbar) */}
+      {screen === 'game' && (
         <button className="encyclopedia-floating-btn" onClick={() => setShowEncyclopedia(true)} title="Ensiklopedia">
           <span className="icon">📖</span>
           <span className="text">Info</span>

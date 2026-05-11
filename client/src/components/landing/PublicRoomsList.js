@@ -12,7 +12,7 @@ export default function PublicRoomsList({ publicRooms, username, joinRoom, showE
   return (
     <div className="landing-rooms">
       <div className="rooms-header">
-        <h3 className="rooms-title">🌍 Rohangan Public</h3>
+        <h3 className="rooms-title">Rohangan Public</h3>
         <span className="rooms-count">{publicRooms.length} aktif</span>
       </div>
 
@@ -24,20 +24,20 @@ export default function PublicRoomsList({ publicRooms, username, joinRoom, showE
             const canJoin = !isFull && !isPlaying;
 
             return (
-              <div 
-                key={room.code} 
-                className={`room-card ${!canJoin ? 'room-card-disabled' : ''}`} 
+              <div
+                key={room.code}
+                className={`room-card ${!canJoin ? 'room-card-disabled' : ''}`}
                 onClick={() => handleJoinRoom(room)}
               >
                 <div className="room-card-left">
                   <span className="room-card-name">{room.name}</span>
-                  <span className="room-card-players">👥 {room.playersCount}/{room.maxPlayers}</span>
+                  <span className="room-card-players">{room.playersCount}/{room.maxPlayers} pamain</span>
                 </div>
                 <div className="room-card-right">
                   {isPlaying ? (
-                    <span className="room-badge room-badge-playing">⚔️ Main</span>
+                    <span className="room-badge room-badge-playing">Bermain</span>
                   ) : isFull ? (
-                    <span className="room-badge room-badge-full">🚫 Penuh</span>
+                    <span className="room-badge room-badge-full">Penuh</span>
                   ) : (
                     <button className="room-join-btn">Asup →</button>
                   )}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { getRolePreview } from '../utils/helpers';
+import SceneTopbar from '../components/SceneTopbar';
 
 export default function CreateRoomScene({ state, actions }) {
   const { setScreen, error, roomName, setRoomName, maxPlayers, setMaxPlayers, isPrivate, setIsPrivate } = state;
@@ -7,13 +8,10 @@ export default function CreateRoomScene({ state, actions }) {
 
   return (
     <div className="form-screen">
-      <div className="form-card">
-        <button className="back-btn" onClick={() => setScreen('landing')}>
-          ← Balik
-        </button>
+      <SceneTopbar onBack={() => setScreen('landing')} state={state} />
 
+      <div className="form-card">
         <div className="form-header">
-          <div className="form-icon">🏠</div>
           <h2>Jieun Rohangan Anyar</h2>
           <p>Siapkeun rohangan pikeun maén bareng</p>
         </div>
@@ -21,7 +19,7 @@ export default function CreateRoomScene({ state, actions }) {
         {error && <div className="error-box">{error}</div>}
 
         <div className="form-group">
-          <label>🏠 Ngaran Rohangan</label>
+          <label>Ngaran Rohangan</label>
           <input
             placeholder="Contoh: Rohangan Seru..."
             value={roomName}
@@ -31,7 +29,7 @@ export default function CreateRoomScene({ state, actions }) {
         </div>
 
         <div className="form-group">
-          <label>👥 Jumlah Pamain Maksimal</label>
+          <label>Jumlah Pamain Maksimal</label>
           <div className="slider-container">
             <input
               type="range" min={4} max={20}
@@ -53,15 +51,15 @@ export default function CreateRoomScene({ state, actions }) {
         <div className="form-group">
           <label className="toggle-label toggle-modern">
             <div className="toggle-switch">
-              <input 
-                type="checkbox" 
-                checked={isPrivate} 
-                onChange={e => setIsPrivate(e.target.checked)} 
+              <input
+                type="checkbox"
+                checked={isPrivate}
+                onChange={e => setIsPrivate(e.target.checked)}
               />
               <span className="toggle-track"></span>
             </div>
             <span className="toggle-text">
-              {isPrivate ? '🔒 Private' : '🌍 Public'}
+              {isPrivate ? 'Private' : 'Public'}
               <span className="toggle-hint">
                 {isPrivate ? 'Ngan bisa asup ku kode' : 'Katingali di landing page'}
               </span>
@@ -70,7 +68,7 @@ export default function CreateRoomScene({ state, actions }) {
         </div>
 
         <button className="btn-primary" onClick={createRoom}>
-          🏠 Jieun Rohangan
+          Jieun Rohangan
         </button>
       </div>
     </div>

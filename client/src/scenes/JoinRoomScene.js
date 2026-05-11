@@ -1,28 +1,24 @@
 import React from 'react';
+import SceneTopbar from '../components/SceneTopbar';
 
 export default function JoinRoomScene({ state, actions }) {
-  const { setScreen, error, username, setUsername, joinCode, setJoinCode } = state;
+  const { setScreen, error, joinCode, setJoinCode } = state;
   const { joinRoom } = actions;
 
   return (
     <div className="form-screen">
-      <div className="form-card">
-        <button className="back-btn" onClick={() => setScreen('landing')}>
-          ← Balik
-        </button>
+      <SceneTopbar onBack={() => setScreen('landing')} state={state} />
 
+      <div className="form-card">
         <div className="form-header">
-          <div className="form-icon">🚪</div>
           <h2>Asup Rohangan</h2>
-          <p>Masuk ke ruangan yang sudah ada</p>
+          <p>Asup ku kode rohangan private</p>
         </div>
 
         {error && <div className="error-box">{error}</div>}
 
-
-
         <div className="form-group">
-          <label>🔑 Kode Rohangan (Kode Ruangan)</label>
+          <label>Kode Rohangan</label>
           <input
             placeholder="Contoh: ABC123"
             value={joinCode}
@@ -34,7 +30,7 @@ export default function JoinRoomScene({ state, actions }) {
         </div>
 
         <button className="btn-primary" onClick={joinRoom}>
-          🚪 Asup Rohangan
+          Asup Rohangan
         </button>
       </div>
     </div>
