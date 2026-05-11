@@ -770,48 +770,95 @@ body {
   }
 
   .landing-layout {
-    padding: 16px;
-    gap: 12px;
+    padding: 10px 12px;
+    gap: 8px;
     max-height: 100vh;
     height: 100vh;
   }
 
   .landing-hero-compact {
-    gap: 12px;
+    gap: 8px;
+    padding-top: 2px;
   }
 
   .landing-logo-compact {
-    font-size: 2.2rem;
+    font-size: 2rem;
   }
 
   .landing-title-compact {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
   }
 
   .landing-subtitle-compact {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
+    margin-top: 2px;
   }
 
   .landing-columns {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+
+  .landing-col-left,
+  .landing-col-right {
+    align-items: flex-start;
+    height: auto;
+  }
+
+  .landing-menu,
+  .landing-rooms {
+    height: auto;
   }
 
   .landing-menu {
-    padding: 16px;
-    gap: 10px;
-    border-radius: 14px;
+    padding: 12px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .menu-field {
+    gap: 4px;
+  }
+
+  .menu-label {
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+  }
+
+  .menu-input {
+    padding: 8px 11px;
+    font-size: 0.88rem;
+    border-radius: 8px;
+  }
+
+  .menu-actions {
+    gap: 6px;
   }
 
   .menu-btn {
-    padding: 10px 14px;
-    font-size: 0.85rem;
+    padding: 9px 12px;
+    font-size: 0.83rem;
+    border-radius: 10px;
+  }
+
+  .menu-join-section {
+    gap: 5px;
+  }
+
+  .menu-code-input {
+    padding: 7px 10px;
+    font-size: 0.9rem;
   }
 
   .landing-rooms {
-    padding: 14px;
-    border-radius: 14px;
-    max-height: 35vh;
+    padding: 12px;
+    border-radius: 12px;
+    max-height: 32vh;
+  }
+
+  .rooms-header {
+    margin-bottom: 8px;
   }
 
   .rooms-scroll {
@@ -819,7 +866,7 @@ body {
   }
 
   .room-card {
-    padding: 10px 12px;
+    padding: 8px 11px;
   }
 
   .room-card-name {
@@ -827,8 +874,8 @@ body {
   }
 
   .landing-top-utils {
-    top: 12px;
-    right: 12px;
+    top: 10px;
+    right: 10px;
     gap: 6px;
   }
 
@@ -844,40 +891,52 @@ body {
 
 @media (max-width: 400px) {
   .landing-layout {
-    padding: 12px;
-    gap: 8px;
+    padding: 8px 10px;
+    gap: 6px;
   }
 
   .landing-hero-compact {
-    gap: 8px;
+    gap: 6px;
   }
 
   .landing-logo-compact {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
   }
 
   .landing-title-compact {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+  }
+
+  .landing-subtitle-compact {
+    font-size: 0.68rem;
   }
 
   .landing-menu {
-    padding: 12px;
-    gap: 8px;
+    padding: 10px;
+    gap: 6px;
+    border-radius: 10px;
+  }
+
+  .menu-label {
+    font-size: 0.65rem;
   }
 
   .menu-input {
-    padding: 9px 12px;
-    font-size: 0.88rem;
+    padding: 7px 10px;
+    font-size: 0.85rem;
+    border-radius: 7px;
   }
 
   .menu-btn {
-    padding: 9px 12px;
-    font-size: 0.82rem;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    border-radius: 8px;
   }
 
   .landing-rooms {
-    padding: 12px;
-    max-height: 30vh;
+    padding: 10px;
+    max-height: 28vh;
+    border-radius: 10px;
   }
 
   .landing-top-utils {
