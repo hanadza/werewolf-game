@@ -23,11 +23,11 @@ export default function EliminatedOverlay({ username, role, onDone }) {
   return (
     <div className={`fullscreen-overlay role-reveal-overlay eliminated-overlay ${show ? 'show' : ''}`}>
       <div className={`role-reveal-card eliminated-card-content ${show ? 'show' : ''}`}>
-        <div className="role-reveal-pretitle" style={{ color: '#e94560' }}>KAPUTUSAN SIDANG</div>
+        <div className="role-reveal-pretitle" style={{ color: '#e94560' }}>KEPUTUSAN SIDANG</div>
         <div className="role-reveal-emoji eliminated-emoji">🪓</div>
         <div className="role-reveal-name eliminated-name">{username}</div>
         <div className="role-reveal-desc" style={{ marginTop: '20px' }}>
-          Geus diusir tina lembur! Manéhna téh:
+          Telah diusir dari desa! Dia adalah:
         </div>
         <div className="eliminated-role-reveal" style={{ 
           marginTop: '15px', 

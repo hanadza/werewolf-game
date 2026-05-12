@@ -3,7 +3,7 @@ export const ROLES = {
     name: 'Sanekala',
     emoji: '👹',
     color: '#e94560',
-    desc: 'Maneh nyaéta Sanekala! Siang nyamar jadi warga biasa. Senja berubah wujud & culik budak!',
+    desc: 'Kamu adalah Sanekala! Siang menyamar jadi warga biasa. Senja berubah wujud & culik warga!',
     bg: 'rgba(233,69,96,0.15)',
     secret: true
   },
@@ -11,7 +11,7 @@ export const ROLES = {
     name: 'Dukun',
     emoji: '🔮',
     color: '#9b59b6',
-    desc: 'Maneh nyaéta Dukun! Unggal senja, intip jati diri hiji pamain. Maneh bisa ningali wujud asli Sanekala!',
+    desc: 'Kamu adalah Dukun! Setiap senja, intip jati diri satu pemain. Kamu bisa melihat wujud asli Sanekala!',
     bg: 'rgba(155,89,182,0.15)',
     secret: false
   },
@@ -19,7 +19,7 @@ export const ROLES = {
     name: 'Kolot',
     emoji: '👴',
     color: '#2ecc71',
-    desc: 'Maneh nyaéta Kolot! Unggal senja, jaga hiji budak tina culikan Sanekala. Bisa jaga diri sorangan!',
+    desc: 'Kamu adalah Kolot! Setiap senja, jaga satu warga dari penculikan Sanekala. Bisa jaga diri sendiri!',
     bg: 'rgba(46,204,113,0.15)',
     secret: false
   },
@@ -27,7 +27,7 @@ export const ROLES = {
     name: 'Kuncen',
     emoji: '🗝️',
     color: '#e67e22',
-    desc: 'Maneh nyaéta Kuncen! Kebal 1x tina serangan Sanekala. Bisa ngunci 1 pamain tina sidang!',
+    desc: 'Kamu adalah Kuncen! Kebal 1x dari serangan Sanekala. Bisa mengunci 1 pemain dari sidang!',
     bg: 'rgba(230,126,34,0.15)',
     secret: false
   },
@@ -35,7 +35,7 @@ export const ROLES = {
     name: 'Ajengan',
     emoji: '🕌',
     color: '#1abc9c',
-    desc: 'Maneh nyaéta Ajengan! Lindungi warga jeung doa. 1x Ruqyah Massal: Sanekala teu bisa ngalakukeun aksi!',
+    desc: 'Kamu adalah Ajengan! Lindungi warga dengan doa. 1x Ruqyah Massal: Sanekala tidak bisa melakukan aksi!',
     bg: 'rgba(26,188,156,0.15)',
     secret: false
   },
@@ -43,7 +43,7 @@ export const ROLES = {
     name: 'Budak',
     emoji: '👦',
     color: '#f39c12',
-    desc: 'Maneh nyaéta Budak! Target utama Sanekala. Gunakeun akal pikeun manggihan Sanekala di antara urang!',
+    desc: 'Kamu adalah Budak! Target utama Sanekala. Gunakan akal untuk menemukan Sanekala di antara kita!',
     bg: 'rgba(243,156,18,0.15)',
     secret: false
   }
@@ -51,21 +51,21 @@ export const ROLES = {
 
 export const PHASES = {
   siang: {
-    label: 'Beurang - Sidang Lembur',
+    label: 'Siang - Sidang Desa',
     emoji: '☀️',
     color: '#f39c12',
     bg: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
     overlayBg: 'rgba(243,156,18,0.05)'
   },
   senja: {
-    label: 'Senja - Sanekala Ngaliar',
+    label: 'Senja - Sanekala Berkeliaran',
     emoji: '🌅',
     color: '#e67e22',
     bg: 'linear-gradient(135deg, #2d1b00 0%, #8B4513 40%, #FF6B35 100%)',
     overlayBg: 'rgba(230,126,34,0.08)'
   },
   malam: {
-    label: 'Peuting - Kaayaan Lembur',
+    label: 'Malam - Keadaan Desa',
     emoji: '🌙',
     color: '#9b59b6',
     bg: 'linear-gradient(135deg, #000000 0%, #0d0d1a 50%, #1a0a2e 100%)',

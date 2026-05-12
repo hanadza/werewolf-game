@@ -4,8 +4,8 @@ import Timer from '../components/Timer';
 
 
 export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, username }) {
-  const { phase, dayCount, phaseDuration, phaseMessage, showRoleReveal, setShowRoleReveal, myRole, teammates, sanekalaList, hasShield, ruqyahUsed, ruqyahAvailable, nightBlocked, actionConfirmed, nightInstruction, nightTargets, kuncenMode, setKuncenMode, isFirstDay, isAlive, myVote, voteTargets, lockedPlayers, votes, senjaResult, seerResult, eliminatedInfo, ajenganWasiat, isHost, hostRoleInfo, players, chatMessages, chatInput, setChatInput, soundEnabled, setSoundEnabled, canChat, phaseData } = state;
-  const { sendNightAction, castVote, activateRuqyah, sendChat, endGame } = actions;
+  const { phase, dayCount, phaseDuration, phaseMessage, showRoleReveal, setShowRoleReveal, myRole, teammates, sanekalaList, hasShield, ruqyahUsed, ruqyahAvailable, nightBlocked, actionConfirmed, nightInstruction, nightTargets, kuncenMode, setKuncenMode, isFirstDay, isAlive, myVote, voteTargets, lockedPlayers, votes, senjaResult, seerResult, eliminatedInfo, ajenganWasiat, players, chatMessages, chatInput, setChatInput, soundEnabled, setSoundEnabled, canChat, phaseData } = state;
+  const { sendNightAction, castVote, activateRuqyah, sendChat } = actions;
   const roleData = ROLES[myRole];
 
   return (
@@ -51,7 +51,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
             <div className="panel-card role-card"
               style={{ borderColor: roleData.color, background: roleData.bg }}>
               <div className="role-card-header">
-                <span className="role-card-label">PERAN MANEH</span>
+                <span className="role-card-label">PERAN KAMU</span>
                 {myRole === 'werewolf' && (
                   <span className="sanekala-badge">👹 SANEKALA</span>
                 )}
@@ -69,13 +69,13 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
               {myRole === 'werewolf' && sanekalaList.length > 0 && (
                 <div className="sanekala-team">
                   <div className="sanekala-team-title">
-                    👹 Batur Sanekala (Ngan maneh anu bisa ningali ieu):
+                    👹 Teman Sanekala (Hanya kamu yang bisa melihat ini):
                   </div>
                   {sanekalaList.map((s, i) => (
                     <div key={i} className={`sanekala-member ${!s.isAlive ? 'dead' : ''}`}>
                       <span className="sanekala-icon">👹</span>
                       <span>{s.username}</span>
-                      {!s.isAlive && <span className="dead-tag">Tilar</span>}
+                      {!s.isAlive && <span className="dead-tag">Mati</span>}
                     </div>
                   ))}
                 </div>
@@ -86,7 +86,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                 <div className="kuncen-shield-status">
                   {hasShield
                     ? '🛡️ Kebal masih aktif'
-                    : '🛡️ Kebal geus dipake'}
+                    : '🛡️ Kebal sudah terpakai'}
                 </div>
               )}
 
@@ -95,7 +95,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                 <div className="ajengan-ruqyah-status">
                   {!ruqyahUsed
                     ? '🕌 Ruqyah Massal: Sadia'
-                    : '🕌 Ruqyah Massal: Geus dipake'}
+                    : '🕌 Ruqyah Massal: Sudah terpakai'}
                 </div>
               )}
             </div>
@@ -125,7 +125,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
               {myRole === 'werewolf' && nightBlocked && !actionConfirmed && (
                 <div className="panel-card action-card blocked-action">
                   <div className="action-label">🕌 DIBLOKIR RUQYAH</div>
-                  <p>Ruqyah Massal Ajengan ngahalangan aksi maneh senja ieu!</p>
+                  <p>Ruqyah Massal Ajengan menghalangi aksimu senja ini!</p>
                 </div>
               )}
 
@@ -171,7 +171,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                       {hasShield && (
                         <button className="target-btn kuncen-target"
                           onClick={() => setKuncenMode('shield')}>
-                          🛡️ Gunakeun Kebal (Lindungi diri)
+                          🛡️ Gunakan Kebal (Lindungi diri)
                         </button>
                       )}
                       <button className="target-btn kuncen-target"
@@ -181,19 +181,19 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                     </>
                   ) : kuncenMode === 'shield' ? (
                     <>
-                      <p>Konfirmasi gunakeun kebal?</p>
+                      <p>Konfirmasi gunakan kebal?</p>
                       <button className="target-btn kuncen-target"
                         onClick={() => sendNightAction(username, 'shield')}>
                         🛡️ Aktifkeun Kebal!
                       </button>
                       <button className="back-small-btn"
                         onClick={() => setKuncenMode('')}>
-                        ← Balik
+                        ← Kembali
                       </button>
                     </>
                   ) : (
                     <>
-                      <p>Pilih saha anu rék dikunci:</p>
+                      <p>Pilih siapa yang ingin dikunci:</p>
                       <div className="target-grid">
                         {nightTargets.map((t, i) => (
                           <button key={i} className="target-btn kuncen-target"
@@ -204,7 +204,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                       </div>
                       <button className="back-small-btn"
                         onClick={() => setKuncenMode('')}>
-                        ← Balik
+                        ← Kembali
                       </button>
                     </>
                   )}
@@ -220,7 +220,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                     <button className="ruqyah-btn" onClick={activateRuqyah}>
                       ✨ Aktifkeun Ruqyah Massal!
                       <span className="ruqyah-warning">
-                        ⚠️ Sanekala bakal nyaho maneh Ajengan!
+                        ⚠️ Sanekala akan tahu kamu Ajengan!
                       </span>
                     </button>
                   )}
@@ -239,9 +239,9 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
               {myRole === 'villager' && (
                 <div className="panel-card action-card villager-night">
                   <div className="action-label">👦 SENJA MENCEKAM</div>
-                  <p>Geura balik ka imah! Senja geus datang!</p>
+                  <p>Cepat pulang ke rumah! Senja sudah datang!</p>
                   <p className="small-text">
-                    Sanekala, Dukun, Kolot, Kuncen, jeung Ajengan keur ngalakukeun aksi...
+                    Sanekala, Dukun, Kolot, Kuncen, dan Ajengan sedang melakukan aksi...
                   </p>
                 </div>
               )}
@@ -261,20 +261,20 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
     {/* Hari Pertama - Tidak ada vote */}
     {isFirstDay && isAlive && (
       <div className="panel-card first-day-card">
-        <div className="action-label">☀️ BEURANG KAHIJI</div>
+        <div className="action-label">☀️ SIANG PERTAMA</div>
         <div className="first-day-content">
           <div className="first-day-emoji">🌅</div>
-          <p className="first-day-title">Wilujeng Sumping!</p>
+          <p className="first-day-title">Selamat Datang!</p>
           <p className="first-day-desc">
-            Ieu mangrupa beurang kahiji di lembur.
-            Kenalan heula jeung batur saméméh senja datang!
+            Ini adalah siang pertama di desa.
+            Kenalan dulu dengan yang lain sebelum senja datang!
           </p>
           <p className="first-day-desc">
-            Teu aya sidang ayeuna. Senja bakal datang...
-            Sanekala bakal ngaliar!
+            Tidak ada sidang sekarang. Senja bakal datang...
+            Sanekala akan berkeliaran!
           </p>
           <div className="first-day-warning">
-            ⚠️ Ati-ati! Sanekala aya di antara urang!
+            ⚠️ Ati-ati! Sanekala ada di antara kita!
           </div>
         </div>
       </div>
@@ -284,11 +284,11 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
     {!isFirstDay && myRole === 'ajengan' && isAlive && !ruqyahUsed && (
                 <div className="panel-card action-card ajengan-action">
                   <div className="action-label">🕌 RUQYAH MASSAL</div>
-                  <p>Gunakeun Ruqyah Massal pikeun ngahalangan Sanekala senja ieu!</p>
+                  <p>Gunakan Ruqyah Massal untuk menghalangi Sanekala senja ini!</p>
                   <button className="ruqyah-btn" onClick={activateRuqyah}>
                     ✨ Aktifkeun Ruqyah Massal!
                     <span className="ruqyah-warning">
-                      ⚠️ Sanekala bakal nyaho maneh Ajengan!
+                      ⚠️ Sanekala akan tahu kamu Ajengan!
                     </span>
                   </button>
                 </div>
@@ -297,13 +297,13 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
               {/* Voting - hanya hari ke-2 dst */}
                   {!isFirstDay && isAlive && !myVote && voteTargets.length > 0 && (
                   <div className="panel-card action-card vote-card">
-                  <div className="action-label">🗳️ SIDANG LEMBUR</div>
+                  <div className="action-label">🗳️ SIDANG DESA</div>
                   <p className="action-instruction">
-                    Saha anu maneh curiga jadi Sanekala?
+                    Siapa yang kamu curigai sebagai Sanekala?
                   </p>
                   {lockedPlayers.length > 0 && (
                     <div className="locked-notice">
-                      🔒 {lockedPlayers.join(', ')} dikunci ku Kuncen!
+                      🔒 {lockedPlayers.join(', ')} dikunci oleh Kuncen!
                     </div>
                   )}
                   <div className="target-grid">
@@ -322,7 +322,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
 
               {!isFirstDay && myVote && (
                 <div className="panel-card confirmed-card">
-                  ✅ Maneh milih ngusir: <strong>{myVote}</strong>
+                  ✅ Kamu memilih mengusir: <strong>{myVote}</strong>
                 </div>
               )}
 
@@ -345,20 +345,20 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
           {/* ── MALAM RESULTS ── */}
           {phase === 'malam' && senjaResult && (
             <div className="panel-card malam-result-card">
-              <div className="action-label">🌙 KAAYAAN LEMBUR</div>
+              <div className="action-label">🌙 KEADAAN DESA</div>
               {senjaResult.killed ? (
                 <div className="result-killed">
-                  😱 <strong>{senjaResult.killed}</strong> kapanggih leungit!
-                  <br />Diculik ku Sanekala!
+                  😱 <strong>{senjaResult.killed}</strong> hilang!
+                  <br />Diculik oleh Sanekala!
                 </div>
               ) : (
                 <div className="result-safe">
-                  🎉 Sadaya urang salamet senja ieu!
+                  🎉 Semua warga selamat senja ini!
                 </div>
               )}
               {senjaResult.protectedBy && (
                 <div className="result-protected">
-                  🛡️ Hiji urang diselamatkeun ku{' '}
+                  🛡️ Satu warga diselamatkan oleh{' '}
                   {senjaResult.protectedBy === 'kolot' ? 'Kolot 👴'
                     : senjaResult.protectedBy === 'ajengan' ? 'Ajengan 🕌'
                     : 'Kuncen 🗝️'}!
@@ -366,8 +366,8 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
               )}
               {senjaResult.lockedPlayer && (
                 <div className="result-locked">
-                  🔒 <strong>{senjaResult.lockedPlayer}</strong> dikunci ku Kuncen!
-                  Teu bisa divote ronde ieu!
+                  🔒 <strong>{senjaResult.lockedPlayer}</strong> dikunci oleh Kuncen!
+                  Tidak bisa divote ronde ini!
                 </div>
               )}
             </div>
@@ -378,14 +378,14 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
             <div className="panel-card seer-result-card">
               <div className="action-label">🔮 PANON DUKUN</div>
               <p>
-                <strong>{seerResult.target}</strong> téh nyaéta{' '}
+                <strong>{seerResult.target}</strong> adalah{' '}
                 <strong style={{ color: ROLES[seerResult.role]?.color }}>
                   {ROLES[seerResult.role]?.emoji} {ROLES[seerResult.role]?.name}
                 </strong>!
               </p>
               {seerResult.isSanekala && (
                 <p className="warning-text">
-                  ⚠️ Manéhna téh Sanekala! Ati-ati!
+                  ⚠️ Dia adalah Sanekala! Ati-ati!
                 </p>
               )}
             </div>
@@ -396,8 +396,8 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
             <div className="panel-card eliminated-card">
               <div className="action-label">⚖️ KAPUTUSAN SIDANG</div>
               <p>
-                🪓 <strong>{eliminatedInfo.username}</strong> diusir tina lembur!
-                <br />Manéhna téh{' '}
+                🪓 <strong>{eliminatedInfo.username}</strong> diusir dari desa!
+                <br />Dia adalah{' '}
                 <strong style={{ color: ROLES[eliminatedInfo.role]?.color }}>
                   {ROLES[eliminatedInfo.role]?.emoji} {ROLES[eliminatedInfo.role]?.name}
                 </strong>!
@@ -416,8 +416,8 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
           {/* Dead Player */}
           {!isAlive && (
             <div className="panel-card dead-card">
-              💀 Maneh geus tilar dunya...
-              <br />Saksian wé jalannya kaulinan
+              💀 Kamu sudah mati...
+              <br />Saksikan saja jalannya permainan
             </div>
           )}
 
@@ -429,9 +429,9 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
 
           {/* Players */}
           <div className="panel-card players-card">
-            <h3>👥 Urang Lembur
+            <h3>👥 Warga Desa
               <span className="alive-count">
-                ({players.filter(p => p.isAlive).length} hirup)
+                ({players.filter(p => p.isAlive).length} hidup)
               </span>
             </h3>
             <ul className="game-players-list">
@@ -446,7 +446,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                     <span className="game-player-name">
                       {p.username}
                       {p.username === username && (
-                        <span className="you-tag">(Maneh)</span>
+                        <span className="you-tag">(Kamu)</span>
                       )}
                     </span>
                     <div className="game-player-badges">
@@ -457,7 +457,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                         <span className="locked-tag">🔒</span>
                       )}
                       {!p.isAlive && (
-                        <span className="dead-tag-sm">Tilar</span>
+                        <span className="dead-tag-sm">Mati</span>
                       )}
                     </div>
                   </li>
@@ -474,7 +474,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                   ? '👹 Bisikan Sanekala'
                   : phase === 'senja'
                   ? '🌅 Senja Jempe...'
-                  : '☀️ Obrolan Lembur'}
+                  : '☀️ Obrolan Desa'}
               </h3>
               {phase === 'senja' && myRole === 'werewolf' && (
                 <span className="chat-private-badge">🔒 Privat</span>
@@ -503,8 +503,8 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                   className="chat-input"
                   placeholder={
                     phase === 'senja'
-                      ? 'Bisik ka batur Sanekala...'
-                      : 'Omongkeun pamadegan maneh...'
+                      ? 'Bisik ke teman Sanekala...'
+                      : 'Bicarakan pendapatmu...'
                   }
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
@@ -520,7 +520,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                   ? '🌅 Jempe... senja keur mencekam'
                   : phase === 'malam'
                   ? '🌙 Peuting... ngantosan beurang'
-                  : '💀 Arwah maneh teu bisa ngomong'}
+                  : '💀 Arwahmu tidak bisa bicara'}
               </div>
             )}
           </div>

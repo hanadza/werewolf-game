@@ -12,16 +12,16 @@ export default function CreateRoomScene({ state, actions }) {
 
       <div className="form-card">
         <div className="form-header">
-          <h2>Jieun Rohangan Anyar</h2>
-          <p>Siapkeun rohangan pikeun maén bareng</p>
+          <h2>Buat Ruangan Baru</h2>
+          <p>Siapkan ruangan untuk main bersama</p>
         </div>
 
         {error && <div className="error-box">{error}</div>}
 
         <div className="form-group">
-          <label>Ngaran Rohangan</label>
+          <label>Nama Ruangan</label>
           <input
-            placeholder="Contoh: Rohangan Seru..."
+            placeholder="Contoh: Ruangan Seru..."
             value={roomName}
             onChange={e => setRoomName(e.target.value)}
             maxLength={30}
@@ -29,7 +29,7 @@ export default function CreateRoomScene({ state, actions }) {
         </div>
 
         <div className="form-group">
-          <label>Jumlah Pamain Maksimal</label>
+          <label>Jumlah Pemain Maksimal</label>
           <div className="slider-container">
             <input
               type="range" min={4} max={20}
@@ -39,7 +39,7 @@ export default function CreateRoomScene({ state, actions }) {
             />
             <div className="slider-labels">
               <span>4</span>
-              <span className="slider-value">{maxPlayers} urang</span>
+              <span className="slider-value">{maxPlayers} orang</span>
               <span>20</span>
             </div>
           </div>
@@ -61,14 +61,14 @@ export default function CreateRoomScene({ state, actions }) {
             <span className="toggle-text">
               {isPrivate ? 'Private' : 'Public'}
               <span className="toggle-hint">
-                {isPrivate ? 'Ngan bisa asup ku kode' : 'Katingali di landing page'}
+                {isPrivate ? 'Hanya bisa masuk via kode' : 'Terlihat di beranda'}
               </span>
             </span>
           </label>
         </div>
 
         <button className="btn-primary" onClick={createRoom}>
-          Jieun Rohangan
+          Buat Ruangan
         </button>
       </div>
     </div>
