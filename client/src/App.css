@@ -1999,6 +1999,49 @@ body {
   opacity: 0.4;
 }
 
+/* Skip Vote Button */
+.skip-vote-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.skip-vote-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: white;
+}
+
+/* Vote Tied Banner */
+.vote-tied-card {
+  background: rgba(243, 156, 18, 0.08);
+  border: 1px solid rgba(243, 156, 18, 0.4);
+  text-align: center;
+  animation: pulseGlow 1.5s ease-in-out infinite;
+}
+
+.vote-tied-card .action-label {
+  color: #f39c12;
+}
+
+.vote-tied-card p {
+  font-size: 0.88rem;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(243, 156, 18, 0); }
+  50% { box-shadow: 0 0 12px rgba(243, 156, 18, 0.3); }
+}
+
 /* Malam Result */
 .malam-result-card {
   background: rgba(0, 0, 0, 0.3);
@@ -3070,6 +3113,18 @@ input::placeholder {
   .encyclopedia-grid {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+.encyclopedia-role-solo-hint {
+  grid-column: 1 / -1;
+  background: rgba(243, 156, 18, 0.08);
+  border: 1px solid rgba(243, 156, 18, 0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: rgba(243, 156, 18, 0.85);
+  font-style: italic;
+  text-align: center;
 }
 
 .encyclopedia-role-card {

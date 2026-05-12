@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
 import { ROLES, PHASES } from '../constants/gameConfig';
 
-export default function EncyclopediaModal({ onClose }) {
+export default function EncyclopediaModal({ onClose, myRole }) {
   const [activeTab, setActiveTab] = useState('roles');
+
+  // Jika myRole ada (di dalam game), hanya tampilkan role pemain sendiri
+  const rolesToShow = myRole
+    ? Object.fromEntries(
+        Object.entries(ROLES).filter(([key]) => key === myRole)
+      )
+    : ROLES;
 
   const renderRoles = () => (
     <div className="encyclopedia-grid">
-      {Object.entries(ROLES).map(([key, role]) => (
+      {myRole && (
+        <div className="encyclopedia-role-solo-hint">
+          📜 Kamu hanya bisa melihat peranmu sendiri saat permainan berlangsung.
+        </div>
+      )}
+      {Object.entries(rolesToShow).map(([key, role]) => (
         <div key={key} className="encyclopedia-role-card" style={{ borderColor: role.color }}>
           <div className="encyclopedia-role-header" style={{ background: role.bg }}>
             <span className="encyclopedia-emoji">{role.emoji}</span>
@@ -41,7 +53,7 @@ export default function EncyclopediaModal({ onClose }) {
       <ul>
         <li><strong>Tujuan Warga:</strong> Usir semua Sanekala dari desa melalui voting saat Siang.</li>
         <li><strong>Tujuan Sanekala:</strong> Culik warga sampai jumlah Sanekala lebih banyak atau sama dengan sisa warga.</li>
-        <li><strong>Alur Waktu:</strong> Kaulinan digilir ti Siang (Diskusi & Vote) ➡️ Senja (Aksi Rahasia) ➡️ Peuting (Hasil Aksi).</li>
+        <li><strong>Alur Waktu:</strong> Kaulinan digilir ti Siang (Diskusi &amp; Vote) ➡️ Senja (Aksi Rahasia) ➡️ Peuting (Hasil Aksi).</li>
         <li><strong>Rahasia:</strong> Jangan gampang percaya pada siapapun! Siapa saja bisa jadi Sanekala yang menyamar.</li>
       </ul>
     </div>
