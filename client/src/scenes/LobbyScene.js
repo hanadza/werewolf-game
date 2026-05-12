@@ -8,7 +8,7 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
 
   return (
     <div className="lobby-screen-v2">
-      <SceneTopbar onBack={actions.leaveRoom} backLabel="← Kaluar" state={state} />
+      <SceneTopbar onBack={actions.leaveRoom} backLabel="← Keluar" state={state} />
 
       {/* Header */}
       <div className="lobby-v2-header">
@@ -27,9 +27,9 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
         <div className="lobby-v2-left">
           <div className="lobby-panel">
             <div className="lobby-panel-header">
-              <h3>Urang Lembur</h3>
+              <h3>Warga Desa</h3>
               <span className="lobby-panel-count">
-                {isHost ? `${players.length}/${maxPlayers}` : `${players.length} urang`}
+                {isHost ? `${players.length}/${maxPlayers}` : `${players.length} warga`}
               </span>
             </div>
             <ul className="lobby-players-list">
@@ -38,7 +38,7 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
                   <div className="lobby-player-info">
                     <span className="lobby-player-avatar">👤</span>
                     <span className="lobby-player-name">{p.username}</span>
-                    {p.username === username && <span className="you-badge">Maneh</span>}
+                    {p.username === username && <span className="you-badge">Kamu</span>}
                     {p.isHost && <span className="lobby-host-tag">👑</span>}
                   </div>
                   {isHost && p.username !== username && (
@@ -51,7 +51,7 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
               ))}
             </ul>
             {players.length === 0 && (
-              <div className="lobby-empty-players">Teu aya pamain acan...</div>
+              <div className="lobby-empty-players">Belum ada pemain...</div>
             )}
           </div>
         </div>
@@ -60,21 +60,21 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
         <div className="lobby-v2-right">
           {/* Room Code */}
           <div className="lobby-panel lobby-code-panel">
-            <p className="lobby-code-label">Kode Rohangan</p>
+            <p className="lobby-code-label">Kode Ruangan</p>
             <div className="lobby-code-display">{currentRoom}</div>
-            <p className="lobby-code-hint">Bagikeun ka babaturan maneh</p>
+            <p className="lobby-code-hint">Bagikan ke teman-temanmu</p>
           </div>
 
           {/* Host Controls + Role Info (merged) */}
           {isHost ? (
             <div className="lobby-panel lobby-settings-panel">
               <div className="lobby-panel-header">
-                <h3>Setelan</h3>
+                <h3>Pengaturan</h3>
               </div>
 
               {/* Max Players slider */}
               <div className="form-group" style={{marginBottom: '12px'}}>
-                <label>Maksimal Pamain</label>
+                <label>Maksimal Pemain</label>
                 <div className="slider-container">
                   <input
                     type="range" min={4} max={20}
@@ -88,7 +88,7 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
                   />
                   <div className="slider-labels">
                     <span>4</span>
-                    <span className="slider-value">{maxPlayers} urang</span>
+                    <span className="slider-value">{maxPlayers} orang</span>
                     <span>20</span>
                   </div>
                 </div>
@@ -101,7 +101,7 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
 
               {/* Prerequisites — host only */}
               <div className="role-req-grid" style={{marginBottom: '14px'}}>
-                <span>Min 4 pamain</span>
+                <span>Min 4 pemain</span>
                 <span>Dukun: 4+</span>
                 <span>Kolot: 6+</span>
                 <span>Kuncen: 7+</span>
@@ -125,7 +125,7 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
                 <span className="toggle-text">
                   {isPrivate ? 'Private' : 'Public'}
                   <span className="toggle-hint">
-                    {isPrivate ? 'Ngan bisa asup ku kode' : 'Katingali di landing page'}
+                    {isPrivate ? 'Hanya bisa masuk via kode' : 'Terlihat di beranda'}
                   </span>
                 </span>
               </label>
@@ -150,10 +150,10 @@ export default function LobbyScene({ state, actions, ROLES, socket }) {
           <div className="lobby-start-section">
             {isHost ? (
               <button className="btn-primary btn-start" onClick={startGame} disabled={players.length < 4}>
-                {players.length < 4 ? `Kurang ${4 - players.length} pamain deui` : 'Mimitian Kaulinan!'}
+                {players.length < 4 ? `Kurang ${4 - players.length} pemain lagi` : 'Mulai Permainan!'}
               </button>
             ) : (
-              <div className="waiting-host">Ngantosan host mimitian...</div>
+              <div className="waiting-host">Menunggu host memulai...</div>
             )}
           </div>
         </div>

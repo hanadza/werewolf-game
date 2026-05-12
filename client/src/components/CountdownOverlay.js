@@ -4,10 +4,10 @@ export default function CountdownOverlay({ count }) {
   return (
     <div className="fullscreen-overlay countdown-overlay">
       <div className="countdown-content">
-        <div className="countdown-label">Kaulinan Dimimitian</div>
+        <div className="countdown-label">Permainan Dimulai</div>
         <div className="countdown-number" key={count}>{count}</div>
         <div className="countdown-sub">
-          Siang geus datang... Sanekala nyamar di antara urang!
+          Siang sudah datang... Sanekala menyamar di antara kita!
         </div>
       </div>
     </div>

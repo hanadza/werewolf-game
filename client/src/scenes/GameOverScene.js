@@ -21,14 +21,14 @@ export default function GameOverScene({ state, actions, ROLES }) {
             {isWin ? '🏆' : '👹'}
           </div>
           <h1 style={{ color: isWin ? '#2ecc71' : '#e94560' }}>
-            {isWin ? 'Urang Lembur Meunang!' : 'Sanekala Meunang!'}
+            {isWin ? 'Warga Desa Menang!' : 'Sanekala Menang!'}
           </h1>
           <div className="gameover-message">{gameOver?.message}</div>
         </div>
 
         {/* Role Reveal */}
         <div className="role-reveal-section">
-          <h3>Jati Diri Sadaya Pamain</h3>
+          <h3>Jati Diri Semua Pemain</h3>
           <div className="role-reveal-list">
             {gameOver?.roleReveal?.map((p, i) => {
               const r = ROLES[p.role];
@@ -46,15 +46,15 @@ export default function GameOverScene({ state, actions, ROLES }) {
         <div className="gameover-actions">
           {isHost ? (
             <button className="btn-primary" onClick={endGame}>
-              Balik ka Room
+              Kembali ke Room
             </button>
           ) : (
             <button className="btn-primary" disabled style={{opacity: 0.5, cursor: 'not-allowed'}}>
-              Ngantosan host...
+              Menunggu host...
             </button>
           )}
           <button className="btn-danger" onClick={leaveRoom}>
-            Kaluar Permainan
+            Keluar Permainan
           </button>
         </div>
 

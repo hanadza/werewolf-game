@@ -23,7 +23,7 @@ export default function KidnapOverlay({ username, onDone }) {
         <div className="role-reveal-emoji kidnap-emoji">😱</div>
         <div className="role-reveal-name kidnap-name">{username}</div>
         <div className="role-reveal-desc" style={{ marginTop: '20px' }}>
-          Diculik ku Sanekala peuting ieu! Kapanggih leungit ti imahna...
+          Diculik oleh Sanekala malam ini! Hilang dari rumahnya...
         </div>
       </div>
     </div>
