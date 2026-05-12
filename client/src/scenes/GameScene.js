@@ -111,14 +111,6 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                 <div className="panel-card action-card sanekala-action">
                   <div className="action-label">👹 AKSI SANEKALA</div>
                   <p className="action-instruction">{nightInstruction}</p>
-                  <div className="target-grid">
-                    {nightTargets.map((t, i) => (
-                      <button key={i} className="target-btn sanekala-target"
-                        onClick={() => sendNightAction(t)}>
-                        👦 {t}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
 
@@ -299,24 +291,13 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                   <div className="panel-card action-card vote-card">
                   <div className="action-label">🗳️ SIDANG LEMBUR</div>
                   <p className="action-instruction">
-                    Saha anu maneh curiga jadi Sanekala?
+                    Saha anu maneh curiga jadi Sanekala? (Pilih tina daptar pamain di katuhu)
                   </p>
                   {lockedPlayers.length > 0 && (
                     <div className="locked-notice">
                       🔒 {lockedPlayers.join(', ')} dikunci ku Kuncen!
                     </div>
                   )}
-                  <div className="target-grid">
-                    {voteTargets.map((t, i) => (
-                      <button key={i}
-                        className={`target-btn vote-target ${lockedPlayers.includes(t) ? 'locked' : ''}`}
-                        onClick={() => castVote(t)}
-                        disabled={lockedPlayers.includes(t)}
-                      >
-                        {lockedPlayers.includes(t) ? '🔒' : '🪓'} {t}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
 
@@ -438,6 +419,10 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
               {players.map((p, i) => {
                 const isSanekala = myRole === 'werewolf' &&
                   sanekalaList.find(s => s.username === p.username);
+                
+                const isVotingPhase = phase === 'siang' && !isFirstDay && isAlive && !myVote && voteTargets.includes(p.username);
+                const isKillPhase = phase === 'senja' && myRole === 'werewolf' && isAlive && !nightBlocked && !actionConfirmed && nightTargets.includes(p.username);
+
                 return (
                   <li key={i} className={`game-player-item ${!p.isAlive ? 'dead' : ''} ${p.isLocked ? 'locked' : ''}`}>
                     <span className="game-player-icon">
@@ -458,6 +443,25 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                       )}
                       {!p.isAlive && (
                         <span className="dead-tag-sm">Tilar</span>
+                      )}
+                      
+                      {/* Inline Action Buttons */}
+                      {isVotingPhase && (
+                        <button 
+                          className="target-btn-inline vote-target"
+                          onClick={() => castVote(p.username)}
+                          disabled={lockedPlayers.includes(p.username)}
+                        >
+                          {lockedPlayers.includes(p.username) ? '🔒' : '🪓'} Vote
+                        </button>
+                      )}
+                      {isKillPhase && (
+                        <button 
+                          className="target-btn-inline sanekala-target"
+                          onClick={() => sendNightAction(p.username)}
+                        >
+                          👦 Culik
+                        </button>
                       )}
                     </div>
                   </li>

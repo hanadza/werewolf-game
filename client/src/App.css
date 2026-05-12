@@ -1855,6 +1855,47 @@ body {
   transition: all 0.2s;
 }
 
+.target-btn-inline {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 4px;
+}
+
+.target-btn-inline:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.target-btn-inline:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.target-btn-inline.vote-target {
+  border-color: rgba(243, 156, 18, 0.4);
+  color: #f39c12;
+}
+
+.target-btn-inline.vote-target:hover:not(:disabled) {
+  background: rgba(243, 156, 18, 0.15);
+}
+
+.target-btn-inline.sanekala-target {
+  border-color: rgba(233, 69, 96, 0.4);
+  color: #e94560;
+}
+
+.target-btn-inline.sanekala-target:hover:not(:disabled) {
+  background: rgba(233, 69, 96, 0.15);
+}
+
 .target-btn:hover:not(:disabled) {
   transform: translateX(4px);
   background: rgba(255, 255, 255, 0.12);
