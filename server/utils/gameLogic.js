@@ -97,8 +97,8 @@ function startSiangPhase(roomCode) {
     .map(p => p.username);
 
   const message = isFirstDay
-    ? 'Wilujeng sumping di lembur! Kenalan heula jeung batur saméméh senja datang...'
-    : 'Panonpoe caang... Sanekala nyamar jadi warga biasa. Saha anu bisa dipercaya?';
+    ? 'Selamat datang di desa! Kenalan dulu dengan yang lain sebelum senja datang...'
+    : 'Matahari bersinar... Sanekala menyamar jadi warga biasa. Siapa yang bisa dipercaya?';
 
   const siangDuration = isFirstDay
     ? PHASE_DURATION.siang_pertama
@@ -116,21 +116,21 @@ function startSiangPhase(roomCode) {
 
   if (isFirstDay) {
     broadcastChat(roomCode,
-      `☀️ Kaulinan dimimitian! Ieu mangrupa beurang ka-1. Kenalan heula, teu aya sidang!`,
+      `☀️ Permainan dimulai! Ini adalah siang ke-1. Kenalan dulu, tidak ada sidang!`,
       'system'
     );
     broadcastChat(roomCode,
-      `🌅 Senja bakal datang... Sanekala bakal ngaliar. Ati-ati!`,
+      `🌅 Senja akan datang... Sanekala akan berkeliaran. Hati-hati!`,
       'system'
     );
   } else {
     broadcastChat(roomCode,
-      `☀️ Beurang ka-${room.dayCount} dimimitian! Diskusi jeung pilih saha Sanekala!`,
+      `☀️ Siang ke-${room.dayCount} dimulai! Diskusi dan pilih siapa Sanekala!`,
       'system'
     );
     if (room.lockedPlayers.length > 0) {
       broadcastChat(roomCode,
-        `🔒 ${room.lockedPlayers.join(', ')} dikunci ku Kuncen! Teu bisa divote!`,
+        `🔒 ${room.lockedPlayers.join(', ')} dikunci oleh Kuncen! Tidak bisa divote!`,
         'system'
       );
     }
@@ -176,13 +176,13 @@ function resolveSiangVote(roomCode) {
           const randomTarget = alivePlayers[Math.floor(Math.random() * alivePlayers.length)];
           const targetInfo = room.players.find(p => p.username === randomTarget.username);
           io.to(targetPlayer.id).emit('ajenganWasiat', {
-            message: `📜 Wasiat Ajengan: ${randomTarget.username} nyaéta ${getRoleName(targetInfo?.role)}!`
+            message: `📜 Wasiat Ajengan: ${randomTarget.username} adalah ${getRoleName(targetInfo?.role)}!`
           });
         }
       }
 
       broadcastChat(roomCode,
-        `⚖️ ${eliminated} diusir tina lembur! Manéhna téh ${getRoleName(eliminatedRole)}!`,
+        `⚖️ ${eliminated} diusir dari desa! Dia adalah ${getRoleName(eliminatedRole)}!`,
         'system'
       );
 
@@ -193,7 +193,7 @@ function resolveSiangVote(roomCode) {
       });
     }
   } else {
-    broadcastChat(roomCode, `🤷 Teu aya kasapukan! Teu aya anu diusir.`, 'system');
+    broadcastChat(roomCode, `🤷 Tidak ada kesepakatan! Tidak ada yang diusir.`, 'system');
   }
 
   broadcastPlayers(roomCode);
@@ -218,10 +218,10 @@ function startSenjaPhase(roomCode) {
     phase: 'senja',
     dayCount: room.dayCount,
     duration: PHASE_DURATION.senja,
-    message: 'Azan Maghrib geus kadéngé... Sanekala mimiti nembongkeun wujud aslina!'
+    message: 'Azan Maghrib mulai terdengar... Sanekala mulai menampakkan wujud aslinya!'
   });
 
-  broadcastChat(roomCode, `🌅 Senja ka-${room.dayCount} datang! Sanekala ngaliar!`, 'system');
+  broadcastChat(roomCode, `🌅 Senja ke-${room.dayCount} datang! Sanekala berkeliaran!`, 'system');
 
   // Kirim instruksi ke tiap role
   room.players.forEach(p => {
@@ -237,14 +237,14 @@ function startSenjaPhase(roomCode) {
         if (room.nightActions['ruqyah_massal']) {
           io.to(p.id).emit('nightInstruction', {
             role: 'werewolf',
-            message: '🕌 Ruqyah Massal aktif! Maneh teu bisa ngalakukeun aksi senja ieu!',
+            message: '🕌 Ruqyah Massal aktif! Kamu tidak bisa melakukan aksi senja ini!',
             targets: [],
             blocked: true
           });
         } else {
           io.to(p.id).emit('nightInstruction', {
             role: 'werewolf',
-            message: '👹 Pilih budak anu rék ditipu senja ieu!',
+            message: '👹 Pilih warga yang mau kamu serang senja ini!',
             targets: nonSanekalaTargets,
             blocked: false
           });
@@ -254,7 +254,7 @@ function startSenjaPhase(roomCode) {
       case 'seer':
         io.to(p.id).emit('nightInstruction', {
           role: 'seer',
-          message: '🔮 Pilih saha anu hayang maneh intip jati dirina!',
+          message: '🔮 Pilih siapa yang ingin kamu intip jati dirinya!',
           targets: allTargets
         });
         break;
@@ -262,7 +262,7 @@ function startSenjaPhase(roomCode) {
       case 'doctor':
         io.to(p.id).emit('nightInstruction', {
           role: 'doctor',
-          message: '👴 Pilih budak anu rék maneh jaga senja ieu!',
+          message: '👴 Pilih warga yang mau kamu jaga senja ini!',
           targets: allAlive
         });
         break;
@@ -271,8 +271,8 @@ function startSenjaPhase(roomCode) {
         io.to(p.id).emit('nightInstruction', {
           role: 'kuncen',
           message: p.isShielded
-            ? '🗝️ Pilih aksi Kuncen:\n• Gunakeun Kebal (lindungi diri)\n• Kunci Pamain (skip vote)'
-            : '🗝️ Kebal geus dipake! Pilih saha anu rék dikunci tina sidang!',
+            ? '🗝️ Pilih aksi Kuncen:\n• Gunakan Kebal (lindungi diri)\n• Kunci Pemain (skip vote)'
+            : '🗝️ Kebal sudah terpakai! Pilih siapa yang mau dikunci dari sidang!',
           targets: allTargets,
           hasShield: p.isShielded
         });
@@ -281,7 +281,7 @@ function startSenjaPhase(roomCode) {
       case 'ajengan':
         io.to(p.id).emit('nightInstruction', {
           role: 'ajengan',
-          message: '🕌 Pilih saha anu rék maneh doakeun senja ieu!',
+          message: '🕌 Pilih siapa yang ingin kamu doakan senja ini!',
           targets: allAlive,
           ruqyahAvailable: !room.ajenganRuqyahUsed
         });
@@ -290,7 +290,7 @@ function startSenjaPhase(roomCode) {
       default:
         io.to(p.id).emit('nightInstruction', {
           role: 'villager',
-          message: '👦 Geura balik ka imah! Senja geus datang, Sanekala ngaliar!',
+          message: '👦 Cepat pulang ke rumah! Senja sudah datang, Sanekala berkeliaran!',
           targets: [],
           blocked: true
         });
@@ -438,20 +438,20 @@ function startMalamPhase(roomCode, senjaResult = {}) {
 
   let announcement = '';
   if (killed) {
-    announcement = `😱 ${killed} kapanggih leungit! Diculik ku Sanekala!`;
+    announcement = `😱 ${killed} hilang! Diculik oleh Sanekala!`;
   } else if (protectedBy) {
     const protectorName = {
       kolot: 'Kolot',
       ajengan: 'Ajengan',
       kuncen: 'Kuncen'
     }[protectedBy];
-    announcement = `🛡️ Hiji urang diselamatkeun ku ${protectorName}! Sadaya salamet!`;
+    announcement = `🛡️ Satu warga diselamatkan oleh ${protectorName}! Semua selamat!`;
   } else {
-    announcement = `🎉 Sadaya urang salamet senja ieu!`;
+    announcement = `🎉 Semua warga selamat senja ini!`;
   }
 
   if (lockedPlayer) {
-    announcement += ` 🔒 ${lockedPlayer} dikunci ku Kuncen!`;
+    announcement += ` 🔒 ${lockedPlayer} dikunci oleh Kuncen!`;
   }
 
   io.to(roomCode).emit('phaseChange', {
@@ -528,14 +528,14 @@ function checkWinCondition(roomCode) {
 
   if (aliveSanekala.length === 0) {
     endGame(roomCode, 'warga',
-      '🏆 Urang Lembur Meunang! Sadaya Sanekala geus diusir! Budak-budak aman!'
+      '🏆 Warga Desa Menang! Semua Sanekala berhasil diusir! Warga aman!'
     );
     return true;
   }
 
   if (aliveSanekala.length >= aliveOthers.length) {
     endGame(roomCode, 'sanekala',
-      '👹 Sanekala Meunang! Maranéhna geus nguasai lembur! Budak-budak sadayana diculik!'
+      '👹 Sanekala Menang! Mereka telah menguasai desa! Semua warga diculik!'
     );
     return true;
   }

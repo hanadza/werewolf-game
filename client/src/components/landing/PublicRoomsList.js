@@ -5,14 +5,14 @@ export default function PublicRoomsList({ publicRooms, username, joinRoom, showE
     const isFull = room.playersCount >= room.maxPlayers;
     const isPlaying = room.phase !== 'lobby';
     if (isFull || isPlaying) return;
-    if (!username.trim()) return showError('Eusi ngaran heula!');
+    if (!username.trim()) return showError('Isi nama dulu!');
     joinRoom(room.code);
   };
 
   return (
     <div className="landing-rooms">
       <div className="rooms-header">
-        <h3 className="rooms-title">Rohangan Public</h3>
+        <h3 className="rooms-title">Ruangan Publik</h3>
         <span className="rooms-count">{publicRooms.length} aktif</span>
       </div>
 
@@ -31,7 +31,7 @@ export default function PublicRoomsList({ publicRooms, username, joinRoom, showE
               >
                 <div className="room-card-left">
                   <span className="room-card-name">{room.name}</span>
-                  <span className="room-card-players">{room.playersCount}/{room.maxPlayers} pamain</span>
+                  <span className="room-card-players">{room.playersCount}/{room.maxPlayers} pemain</span>
                 </div>
                 <div className="room-card-right">
                   {isPlaying ? (
@@ -39,7 +39,7 @@ export default function PublicRoomsList({ publicRooms, username, joinRoom, showE
                   ) : isFull ? (
                     <span className="room-badge room-badge-full">Penuh</span>
                   ) : (
-                    <button className="room-join-btn">Asup →</button>
+                    <button className="room-join-btn">Masuk →</button>
                   )}
                 </div>
               </div>
@@ -48,8 +48,8 @@ export default function PublicRoomsList({ publicRooms, username, joinRoom, showE
         ) : (
           <div className="rooms-empty">
             <span className="rooms-empty-icon">🏚️</span>
-            <p>Teu aya rohangan public</p>
-            <p className="rooms-empty-hint">Jieun rohangan anyar heula!</p>
+            <p>Belum ada ruangan publik</p>
+            <p className="rooms-empty-hint">Buat ruangan baru dulu!</p>
           </div>
         )}
       </div>

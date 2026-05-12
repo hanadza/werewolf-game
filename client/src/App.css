@@ -236,7 +236,7 @@ body {
 .landing-bg-overlay {
   position: absolute;
   inset: 0;
-  background: 
+  background:
     radial-gradient(ellipse at 20% 50%, rgba(233, 69, 96, 0.08) 0%, transparent 60%),
     radial-gradient(ellipse at 80% 50%, rgba(243, 156, 18, 0.06) 0%, transparent 60%);
   pointer-events: none;
@@ -250,7 +250,7 @@ body {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 64px;
   max-height: 100vh;
 }
 
@@ -263,7 +263,7 @@ body {
 }
 
 .landing-logo-compact {
-  font-size: 3rem;
+  font-size: 4.5rem;
   animation: float 3s ease-in-out infinite;
   flex-shrink: 0;
 }
@@ -278,7 +278,7 @@ body {
 }
 
 .landing-title-compact {
-  font-size: 1.8rem;
+  font-size: 2.8rem;
   font-weight: 900;
   background: linear-gradient(45deg, #e94560, #f39c12);
   -webkit-background-clip: text;
@@ -289,10 +289,10 @@ body {
 }
 
 .landing-subtitle-compact {
-  font-size: 0.85rem;
-  opacity: 0.6;
+  font-size: 1.1rem;
+  opacity: 0.75;
   font-style: italic;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 .landing-error {
@@ -343,12 +343,12 @@ body {
 
 .menu-input {
   width: 100%;
-  padding: 11px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.3);
+  padding: 16px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.4);
   color: white;
-  font-size: 0.95rem;
+  font-size: 1.2rem !important;
   transition: border-color 0.2s;
 }
 
@@ -791,8 +791,8 @@ body {
   }
 
   .landing-subtitle-compact {
-    font-size: 0.72rem;
-    margin-top: 2px;
+    font-size: 0.95rem;
+    margin-top: 4px;
   }
 
   .landing-columns {
@@ -828,9 +828,9 @@ body {
   }
 
   .menu-input {
-    padding: 8px 11px;
-    font-size: 0.88rem;
-    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 1rem;
+    border-radius: 10px;
   }
 
   .menu-actions {
@@ -909,7 +909,7 @@ body {
   }
 
   .landing-subtitle-compact {
-    font-size: 0.68rem;
+    font-size: 0.85rem;
   }
 
   .landing-menu {
@@ -923,9 +923,9 @@ body {
   }
 
   .menu-input {
-    padding: 7px 10px;
-    font-size: 0.85rem;
-    border-radius: 7px;
+    padding: 9px 12px;
+    font-size: 0.95rem;
+    border-radius: 8px;
   }
 
   .menu-btn {

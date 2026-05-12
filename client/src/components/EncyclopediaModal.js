@@ -26,9 +26,9 @@ export default function EncyclopediaModal({ onClose }) {
             <span className="encyclopedia-emoji">{phase.emoji}</span> {phase.label}
           </div>
           <div className="encyclopedia-phase-desc">
-            {key === 'siang' && "Waktuna warga diskusi! Panggihan saha Sanekala di antara aranjeun, jeung usir ngaliwatan voting (sora panglobana)."}
-            {key === 'senja' && "Waktuna mahluk gaib jeung warga nu boga kamampuh husus (Dukun, Kolot, jrrd) ngalakukeun aksina rerencepan."}
-            {key === 'malam' && "Hasil tina aksi senja diumumkeun. Saha nu salamet, saha nu diculik. Siap-siap nyanghareupan beurang deui."}
+            {key === 'siang' && "Waktunya warga diskusi! Temukan siapa Sanekala di antara kalian, dan usir melalui voting (suara terbanyak)."}
+            {key === 'senja' && "Waktunya makhluk gaib dan warga yang punya kemampuan khusus (Dukun, Kolot, dll) melakukan aksinya diam-diam."}
+            {key === 'malam' && "Hasil dari aksi senja diumumkan. Siapa yang selamat, siapa yang diculik. Bersiap menghadapi siang lagi."}
           </div>
         </div>
       ))}
@@ -39,10 +39,10 @@ export default function EncyclopediaModal({ onClose }) {
     <div className="encyclopedia-guide">
       <h3>Cara Maén (How to Play)</h3>
       <ul>
-        <li><strong>Tujuan Warga:</strong> Usir kabeh Sanekala tina lembur ngaliwatan voting waktu Siang.</li>
-        <li><strong>Tujuan Sanekala:</strong> Culik warga nepi ka jumlah Sanekala leuwih loba atawa sarua jeung sésa warga.</li>
+        <li><strong>Tujuan Warga:</strong> Usir semua Sanekala dari desa melalui voting saat Siang.</li>
+        <li><strong>Tujuan Sanekala:</strong> Culik warga sampai jumlah Sanekala lebih banyak atau sama dengan sisa warga.</li>
         <li><strong>Alur Waktu:</strong> Kaulinan digilir ti Siang (Diskusi & Vote) ➡️ Senja (Aksi Rahasia) ➡️ Peuting (Hasil Aksi).</li>
-        <li><strong>Rahasia:</strong> Ulah gampang percaya ka sasaha! Saha waé bisa jadi Sanekala nu nyamar.</li>
+        <li><strong>Rahasia:</strong> Jangan gampang percaya pada siapapun! Siapa saja bisa jadi Sanekala yang menyamar.</li>
       </ul>
     </div>
   );

@@ -13,9 +13,9 @@ export default function TransitionOverlay({ from, to, duration }) {
   }, [duration]);
 
   const messages = {
-    siang: '☀️ Panonpoe bijil... Warga ngumpul pikeun bersidang!',
-    senja: '🌅 Azan Maghrib kadéngé... Sanekala mimiti ngaliar!',
-    malam: '🌙 Peuting nutupan lembur... Naon anu kajadian?'
+    siang: '☀️ Matahari terbit... Warga berkumpul untuk bersidang!',
+    senja: '🌅 Senja tiba... Sanekala mulai berkeliaran!',
+    malam: '🌙 Malam menutupi desa... Apa yang terjadi?'
   };
 
   return (

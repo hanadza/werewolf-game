@@ -364,8 +364,8 @@ function App() {
 
   // ── Actions ──
 const createRoom = () => {
-    if (!username.trim()) return showError('Eusi ngaran heula!');
-    if (!roomName.trim()) return showError('Eusi ngaran rohangan heula!');
+    if (!username.trim()) return showError('Isi nama dulu!');
+    if (!roomName.trim()) return showError('Isi nama ruangan dulu!');
     // Set username dulu sebelum create room
     socket.emit('createRoom', {
       roomName: roomName.trim(),
@@ -377,13 +377,13 @@ const createRoom = () => {
 
   const joinRoom = (code) => {
     const targetCode = typeof code === 'string' ? code : joinCode;
-    if (!username.trim()) return showError('Eusi ngaran heula!');
-    if (!targetCode.trim()) return showError('Eusi kode rohangan heula!');
+    if (!username.trim()) return showError('Isi nama dulu!');
+    if (!targetCode.trim()) return showError('Isi kode ruangan dulu!');
     socket.emit('joinRoom', { roomCode: targetCode.toUpperCase(), username });
   };
 
   const leaveRoom = () => {
-    if (window.confirm('Yakin rek balik ka menu utama?')) {
+    if (window.confirm('Yakin ingin kembali ke menu utama?')) {
       socket.emit('leaveRoom');
       setScreen('landing');
       setCurrentRoom('');
@@ -394,7 +394,7 @@ const createRoom = () => {
   const startGame = () => socket.emit('startGame', currentRoom);
 
   const endGame = () => {
-    if (window.confirm('Yakin rék ngakhiran kaulinan?')) {
+    if (window.confirm('Yakin ingin mengakhiri permainan?')) {
       socket.emit('endGame', currentRoom);
     }
   };
@@ -408,7 +408,7 @@ const createRoom = () => {
   };
 
   const transferHost = (targetUsername) => {
-    if (window.confirm(`Jadikeun ${targetUsername} host anyar?`)) {
+    if (window.confirm(`Jadikan ${targetUsername} host baru?`)) {
       socket.emit('transferHost', { roomCode: currentRoom, targetUsername });
     }
   };
@@ -445,7 +445,7 @@ const createRoom = () => {
   // ── Computed ──
   const myPlayer = players.find(p => p.username === username);
   const isAlive = myPlayer?.isAlive ?? true;
-  const roleData = ROLES[myRole];
+
   const phaseData = PHASES[phase];
   const canChat = (phase === 'siang' && isAlive) ||
     (phase === 'senja' && myRole === 'werewolf' && isAlive);
