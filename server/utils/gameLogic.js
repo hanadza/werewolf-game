@@ -159,6 +159,8 @@ function resolveSiangVote(roomCode) {
   }
 
   clearPhaseTimer(roomCode);
+  // Tandai phase sebagai 'resolving' supaya timer lain tidak ikut menembak
+  room.phase = 'resolving';
 
   const voteValues = Object.values(room.votes).filter(v => v !== 'skip');
   const eliminated = getMajorityVote(voteValues);
@@ -208,7 +210,13 @@ function resolveSiangVote(roomCode) {
   if (checkWinCondition(roomCode)) return;
 
   // Transisi ke Senja
-  startTransition(roomCode, 'senja');
+  // Jika ada eliminasi, tunggu dulu supaya overlay animasi eliminasi di client selesai (~5 detik)
+  const transitionDelay = eliminated ? 5000 : 0;
+  setTimeout(() => {
+    if (rooms.get(roomCode)?.phase === 'resolving') {
+      startTransition(roomCode, 'senja');
+    }
+  }, transitionDelay);
 }
 
 // ── SENJA PHASE ──
