@@ -4,8 +4,8 @@ import Timer from '../components/Timer';
 
 
 export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, username }) {
-  const { phase, dayCount, phaseDuration, phaseMessage, showRoleReveal, setShowRoleReveal, myRole, teammates, sanekalaList, hasShield, ruqyahUsed, ruqyahAvailable, nightBlocked, actionConfirmed, nightInstruction, nightTargets, kuncenMode, setKuncenMode, isFirstDay, isAlive, myVote, voteTargets, lockedPlayers, votes, senjaResult, seerResult, eliminatedInfo, ajenganWasiat, players, chatMessages, chatInput, setChatInput, soundEnabled, setSoundEnabled, canChat, phaseData } = state;
-  const { sendNightAction, castVote, activateRuqyah, sendChat } = actions;
+  const { phase, dayCount, phaseDuration, phaseMessage, showRoleReveal, setShowRoleReveal, myRole, teammates, sanekalaList, hasShield, ruqyahUsed, ruqyahAvailable, nightBlocked, actionConfirmed, nightInstruction, nightTargets, kuncenMode, setKuncenMode, isFirstDay, isAlive, myVote, voteTargets, lockedPlayers, votes, senjaResult, seerResult, eliminatedInfo, ajenganWasiat, players, chatMessages, chatInput, setChatInput, soundEnabled, setSoundEnabled, canChat, phaseData, voteTied } = state;
+  const { sendNightAction, castVote, activateRuqyah, sendChat, skipVote } = actions;
   const roleData = ROLES[myRole];
 
   return (
@@ -126,14 +126,6 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                 <div className="panel-card action-card seer-action">
                   <div className="action-label">🔮 AKSI DUKUN</div>
                   <p className="action-instruction">{nightInstruction}</p>
-                  <div className="target-grid">
-                    {nightTargets.map((t, i) => (
-                      <button key={i} className="target-btn seer-target"
-                        onClick={() => sendNightAction(t)}>
-                        👤 {t}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
 
@@ -142,14 +134,6 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                 <div className="panel-card action-card doctor-action">
                   <div className="action-label">👴 AKSI KOLOT</div>
                   <p className="action-instruction">{nightInstruction}</p>
-                  <div className="target-grid">
-                    {nightTargets.map((t, i) => (
-                      <button key={i} className="target-btn doctor-target"
-                        onClick={() => sendNightAction(t)}>
-                        👦 {t}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
 
@@ -185,15 +169,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                     </>
                   ) : (
                     <>
-                      <p>Pilih siapa yang ingin dikunci:</p>
-                      <div className="target-grid">
-                        {nightTargets.map((t, i) => (
-                          <button key={i} className="target-btn kuncen-target"
-                            onClick={() => sendNightAction(t, 'lock')}>
-                            🔒 {t}
-                          </button>
-                        ))}
-                      </div>
+                      <p>Pilih siapa yang ingin dikunci dari daftar warga:</p>
                       <button className="back-small-btn"
                         onClick={() => setKuncenMode('')}>
                         ← Kembali
@@ -216,14 +192,6 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                       </span>
                     </button>
                   )}
-                  <div className="target-grid">
-                    {nightTargets.map((t, i) => (
-                      <button key={i} className="target-btn ajengan-target"
-                        onClick={() => sendNightAction(t)}>
-                        🙏 {t}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
 
@@ -286,24 +254,20 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                 </div>
               )}
 
-              {/* Voting - hanya hari ke-2 dst */}
-                  {!isFirstDay && isAlive && !myVote && voteTargets.length > 0 && (
-                  <div className="panel-card action-card vote-card">
-                  <div className="action-label">🗳️ SIDANG DESA</div>
-                  <p className="action-instruction">
-                    Siapa yang kamu curigai sebagai Sanekala?
-                  </p>
-                  {lockedPlayers.length > 0 && (
-                    <div className="locked-notice">
-                      🔒 {lockedPlayers.join(', ')} dikunci oleh Kuncen!
-                    </div>
-                  )}
-                </div>
-              )}
 
               {!isFirstDay && myVote && (
                 <div className="panel-card confirmed-card">
-                  ✅ Kamu memilih mengusir: <strong>{myVote}</strong>
+                  {myVote === 'skip'
+                    ? '⏭️ Kamu melewati giliran vote'
+                    : <>✅ Kamu memilih mengusir: <strong>{myVote}</strong></>}
+                </div>
+              )}
+
+              {/* Vote Tied Banner */}
+              {!isFirstDay && voteTied && (
+                <div className="panel-card vote-tied-card">
+                  <div className="action-label">⚖️ VOTING SERI!</div>
+                  <p>Suara terbagi sama rata — tidak ada yang bisa diusir ronde ini!</p>
                 </div>
               )}
 
@@ -315,7 +279,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                     <div key={i} className="vote-row">
                       <span>👤 {voter}</span>
                       <span className="vote-arrow">→</span>
-                      <span>🪓 {target}</span>
+                      <span>{target === 'skip' ? '⏭️ Skip' : `🪓 ${target}`}</span>
                     </div>
                   ))}
                 </div>
@@ -421,7 +385,12 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                   sanekalaList.find(s => s.username === p.username);
                 
                 const isVotingPhase = phase === 'siang' && !isFirstDay && isAlive && !myVote && voteTargets.includes(p.username);
-                const isKillPhase = phase === 'senja' && myRole === 'werewolf' && isAlive && !nightBlocked && !actionConfirmed && nightTargets.includes(p.username);
+                const canActNight = phase === 'senja' && isAlive && !actionConfirmed;
+                const isSanekalaTarget = canActNight && myRole === 'werewolf' && !nightBlocked && nightTargets.includes(p.username);
+                const isSeerTarget = canActNight && myRole === 'seer' && nightTargets.includes(p.username);
+                const isDoctorTarget = canActNight && myRole === 'doctor' && nightTargets.includes(p.username);
+                const isAjenganTarget = canActNight && myRole === 'ajengan' && nightTargets.includes(p.username);
+                const isKuncenTarget = canActNight && myRole === 'kuncen' && kuncenMode === 'lock' && nightTargets.includes(p.username);
 
                 return (
                   <li key={i} className={`game-player-item ${!p.isAlive ? 'dead' : ''} ${p.isLocked ? 'locked' : ''}`}>
@@ -455,7 +424,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                           {lockedPlayers.includes(p.username) ? '🔒' : '🪓'} Vote
                         </button>
                       )}
-                      {isKillPhase && (
+                      {isSanekalaTarget && (
                         <button 
                           className="target-btn-inline sanekala-target"
                           onClick={() => sendNightAction(p.username)}
@@ -463,11 +432,48 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                           👦 Culik
                         </button>
                       )}
+                      {isSeerTarget && (
+                        <button 
+                          className="target-btn-inline seer-target"
+                          onClick={() => sendNightAction(p.username)}
+                        >
+                          🔮 Terawang
+                        </button>
+                      )}
+                      {isDoctorTarget && (
+                        <button 
+                          className="target-btn-inline doctor-target"
+                          onClick={() => sendNightAction(p.username)}
+                        >
+                          💊 Lindungi
+                        </button>
+                      )}
+                      {isAjenganTarget && (
+                        <button 
+                          className="target-btn-inline ajengan-target"
+                          onClick={() => sendNightAction(p.username)}
+                        >
+                          🙏 Berkah
+                        </button>
+                      )}
+                      {isKuncenTarget && (
+                        <button 
+                          className="target-btn-inline kuncen-target"
+                          onClick={() => sendNightAction(p.username, 'lock')}
+                        >
+                          🔒 Kunci
+                        </button>
+                      )}
                     </div>
                   </li>
                 );
               })}
             </ul>
+            {phase === 'siang' && !isFirstDay && isAlive && !myVote && voteTargets.length > 0 && (
+              <button className="skip-vote-btn" onClick={skipVote} style={{marginTop: '10px', width: '100%', padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s'}}>
+                ⏭️ Lewati (Skip Vote)
+              </button>
+            )}
           </div>
 
           {/* Chat */}

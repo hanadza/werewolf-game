@@ -159,8 +159,11 @@ function resolveSiangVote(roomCode) {
   }
 
   clearPhaseTimer(roomCode);
+  // Tandai phase sebagai 'resolving' supaya timer lain tidak ikut menembak
+  room.phase = 'resolving';
 
-  const eliminated = getMajorityVote(Object.values(room.votes));
+  const voteValues = Object.values(room.votes).filter(v => v !== 'skip');
+  const eliminated = getMajorityVote(voteValues);
   let eliminatedRole = null;
 
   if (eliminated) {
@@ -193,7 +196,13 @@ function resolveSiangVote(roomCode) {
       });
     }
   } else {
-    broadcastChat(roomCode, `🤷 Tidak ada kesepakatan! Tidak ada yang diusir.`, 'system');
+    const voteValues = Object.values(room.votes).filter(v => v !== 'skip');
+    if (isTieVote(voteValues)) {
+      broadcastChat(roomCode, `⚖️ Voting seri! Tidak ada yang bisa diusir. Sidang berakhir tanpa keputusan!`, 'system');
+      io.to(roomCode).emit('voteTied', { votes: room.votes });
+    } else {
+      broadcastChat(roomCode, `🤷 Tidak ada kesepakatan! Tidak ada yang diusir.`, 'system');
+    }
   }
 
   broadcastPlayers(roomCode);
@@ -201,7 +210,13 @@ function resolveSiangVote(roomCode) {
   if (checkWinCondition(roomCode)) return;
 
   // Transisi ke Senja
-  startTransition(roomCode, 'senja');
+  // Jika ada eliminasi, tunggu dulu supaya overlay animasi eliminasi di client selesai (~5 detik)
+  const transitionDelay = eliminated ? 5000 : 0;
+  setTimeout(() => {
+    if (rooms.get(roomCode)?.phase === 'resolving') {
+      startTransition(roomCode, 'senja');
+    }
+  }, transitionDelay);
 }
 
 // ── SENJA PHASE ──
@@ -504,7 +519,20 @@ function getMajorityVote(votes) {
   const count = {};
   votes.forEach(v => { if (v) count[v] = (count[v] || 0) + 1; });
   if (!Object.keys(count).length) return null;
-  return Object.entries(count).sort((a, b) => b[1] - a[1])[0][0];
+  const sorted = Object.entries(count).sort((a, b) => b[1] - a[1]);
+  // Seri: jika 2 teratas sama banyak, tidak ada eliminasi
+  if (sorted.length >= 2 && sorted[0][1] === sorted[1][1]) return null;
+  return sorted[0][0];
+}
+
+function isTieVote(votes) {
+  if (!votes || !votes.length) return false;
+  const count = {};
+  votes.forEach(v => { if (v) count[v] = (count[v] || 0) + 1; });
+  const keys = Object.keys(count);
+  if (keys.length < 2) return false;
+  const sorted = Object.entries(count).sort((a, b) => b[1] - a[1]);
+  return sorted[0][1] === sorted[1][1];
 }
 
 function getRoleName(role) {

@@ -291,6 +291,36 @@ socket.on('createRoom', async ({ roomName, maxPlayers, hostUsername, isPrivate }
     }
   });
 
+  // ── SKIP VOTE ──
+  socket.on('skipVote', ({ roomCode }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.phase !== 'siang') return;
+
+    const player = room.players.find(p => p.id === socket.id);
+    if (!player || !player.isAlive) return;
+
+    // Sudah vote sebelumnya, tidak bisa skip lagi
+    if (room.votes[player.username]) return;
+
+    room.votes[player.username] = 'skip';
+
+    const alivePlayers = room.players.filter(p => p.isAlive);
+    const voteCount = Object.keys(room.votes).length;
+
+    io.to(roomCode).emit('voteUpdate', {
+      votes: room.votes,
+      voted: voteCount,
+      total: alivePlayers.length,
+      lockedPlayers: room.lockedPlayers
+    });
+
+    gameLogic.broadcastChat(roomCode, `⏭️ ${player.username} melewati giliran vote!`, 'system');
+
+    if (voteCount >= alivePlayers.length) {
+      gameLogic.resolveSiangVote(roomCode);
+    }
+  });
+
   // ── SEND CHAT ──
   socket.on('sendChat', ({ roomCode, message }) => {
     const room = rooms.get(roomCode);
