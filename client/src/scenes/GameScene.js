@@ -4,8 +4,8 @@ import Timer from '../components/Timer';
 
 
 export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, username }) {
-  const { phase, dayCount, phaseDuration, phaseMessage, showRoleReveal, setShowRoleReveal, myRole, teammates, sanekalaList, hasShield, ruqyahUsed, ruqyahAvailable, nightBlocked, actionConfirmed, nightInstruction, nightTargets, kuncenMode, setKuncenMode, isFirstDay, isAlive, myVote, voteTargets, lockedPlayers, votes, senjaResult, seerResult, eliminatedInfo, ajenganWasiat, players, chatMessages, chatInput, setChatInput, soundEnabled, setSoundEnabled, canChat, phaseData } = state;
-  const { sendNightAction, castVote, activateRuqyah, sendChat } = actions;
+  const { phase, dayCount, phaseDuration, phaseMessage, showRoleReveal, setShowRoleReveal, myRole, teammates, sanekalaList, hasShield, ruqyahUsed, ruqyahAvailable, nightBlocked, actionConfirmed, nightInstruction, nightTargets, kuncenMode, setKuncenMode, isFirstDay, isAlive, myVote, voteTargets, lockedPlayers, votes, senjaResult, seerResult, eliminatedInfo, ajenganWasiat, players, chatMessages, chatInput, setChatInput, soundEnabled, setSoundEnabled, canChat, phaseData, voteTied } = state;
+  const { sendNightAction, castVote, activateRuqyah, sendChat, skipVote } = actions;
   const roleData = ROLES[myRole];
 
   return (
@@ -317,12 +317,25 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                       </button>
                     ))}
                   </div>
+                  <button className="skip-vote-btn" onClick={skipVote}>
+                    ⏭️ Lewati (Skip Vote)
+                  </button>
                 </div>
               )}
 
               {!isFirstDay && myVote && (
                 <div className="panel-card confirmed-card">
-                  ✅ Kamu memilih mengusir: <strong>{myVote}</strong>
+                  {myVote === 'skip'
+                    ? '⏭️ Kamu melewati giliran vote'
+                    : <>✅ Kamu memilih mengusir: <strong>{myVote}</strong></>}
+                </div>
+              )}
+
+              {/* Vote Tied Banner */}
+              {!isFirstDay && voteTied && (
+                <div className="panel-card vote-tied-card">
+                  <div className="action-label">⚖️ VOTING SERI!</div>
+                  <p>Suara terbagi sama rata — tidak ada yang bisa diusir ronde ini!</p>
                 </div>
               )}
 
@@ -334,7 +347,7 @@ export default function GameScene({ state, actions, ROLES, PHASES, chatEndRef, u
                     <div key={i} className="vote-row">
                       <span>👤 {voter}</span>
                       <span className="vote-arrow">→</span>
-                      <span>🪓 {target}</span>
+                      <span>{target === 'skip' ? '⏭️ Skip' : `🪓 ${target}`}</span>
                     </div>
                   ))}
                 </div>

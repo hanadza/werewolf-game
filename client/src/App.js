@@ -62,6 +62,7 @@ function App() {
   const [votes, setVotes] = useState({});
   const [myVote, setMyVote] = useState('');
   const [lockedPlayers, setLockedPlayers] = useState([]);
+  const [voteTied, setVoteTied] = useState(false);
 
   // ── Result State ──
   const [senjaResult, setSenjaResult] = useState(null);
@@ -227,6 +228,7 @@ function App() {
     setSenjaResult(null);
     setSeerResult(null);
     setIsFirstDay(isFirstDay || false);
+    setVoteTied(false);
     stopAllSounds();
     play('siang');
   }
@@ -305,6 +307,10 @@ function App() {
       play('vote');
     });
 
+    socket.on('voteTied', () => {
+      setVoteTied(true);
+    });
+
     socket.on('playerEliminated', ({ username, role, players }) => {
       setPlayers(players);
       setEliminatedInfo({ username, role });
@@ -351,12 +357,12 @@ function App() {
     });
 
     return () => {
-      ['roomCreated','roomJoined','roomUpdated','playerList','hostInfo',
+      ['publicRoomsList','roomCreated','roomJoined','roomUpdated','playerList','hostInfo',
        'kicked','hostDisconnected','gameCountdown','gameStarted','yourRole',
        'hostRoleInfo','sanekalaList','phaseChange','phaseTransition',
        'nightInstruction','actionConfirmed','seerResult','senjaResult',
        'ruqyahMassalActivated','ajenganRevealed','ajenganWasiat',
-       'voteUpdate','playerEliminated','chatMessage','gameOver',
+       'voteUpdate','voteTied','playerEliminated','chatMessage','gameOver',
        'gameEnded','gameRestarted','gameError'
       ].forEach(e => socket.off(e));
     };
@@ -431,6 +437,12 @@ const createRoom = () => {
     socket.emit('castVote', { roomCode: currentRoom, targetUsername: target });
   };
 
+  const skipVote = () => {
+    if (myVote) return;
+    setMyVote('skip');
+    socket.emit('skipVote', { roomCode: currentRoom });
+  };
+
   const activateRuqyah = () => {
     socket.emit('ruqyahMassal', { roomCode: currentRoom });
     setRuqyahUsed(true);
@@ -461,12 +473,12 @@ const createRoom = () => {
     transition, chatMessages, chatInput, setChatInput, error, soundEnabled, setSoundEnabled,
     gameOver, hostRoleInfo, canChat, phaseData, isAlive,
     isPrivate, setIsPrivate, publicRooms, showEncyclopedia, setShowEncyclopedia,
-    volume, handleVolumeChange
+    volume, handleVolumeChange, voteTied
   };
 
   const actions = {
     createRoom, joinRoom, leaveRoom, startGame, endGame, restartGame, kickPlayer, transferHost,
-    sendNightAction, castVote, activateRuqyah, sendChat, showError
+    sendNightAction, castVote, activateRuqyah, sendChat, showError, skipVote
   };
 
   return (
@@ -504,7 +516,12 @@ const createRoom = () => {
 
 
       {/* Encyclopedia Modal */}
-      {showEncyclopedia && <EncyclopediaModal onClose={() => setShowEncyclopedia(false)} />}
+      {showEncyclopedia && (
+        <EncyclopediaModal
+          onClose={() => setShowEncyclopedia(false)}
+          myRole={screen === 'game' ? myRole : null}
+        />
+      )}
     </>
   );
 }
