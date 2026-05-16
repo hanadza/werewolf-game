@@ -1,4 +1,4 @@
-# 👹 Sandekala Village
+# 👹 Sandekala Village: A Werewolf Game from Sundanese Folklore
 
 <div align="center">
 
@@ -16,7 +16,7 @@
 
 **Sandekala Village** adalah game web multiplayer real-time berbasis legenda rakyat Sunda — Jawa Barat.
 
-[🎮 Main Sekarang](https://sandekala-village.vercel.app) · [📦 Source Code](https://github.com/hanadza/sandekala-village)
+[🎮 Main Sekarang](https://sandekala-village-fitzs-projects-26fd36f2.vercel.app/) · [📦 Source Code](https://github.com/hanadza/sandekala-village)
 
 </div>
 
@@ -86,14 +86,14 @@ Dalam kepercayaan masyarakat Sunda, Sanekala adalah makhluk gaib yang berkeliara
 ╔══════════════════════════════════════════════════════╗
 ║                                                      ║
 ║   ☀️  SIANG (60 detik) — Sidang Lembur               ║
-║   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━   ║
+║   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    ║
 ║   • Sanekala menyamar jadi warga biasa               ║
 ║   • Semua pemain diskusi di chat                     ║
 ║   • Vote untuk mengusir pemain yang dicurigai        ║
 ║   • Pemain dengan vote terbanyak = diusir!           ║
 ║                          ↓                           ║
 ║   🌅  SENJA (30 detik) — Sanekala Ngaliar            ║
-║   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━   ║
+║   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    ║
 ║   • 👹 Sanekala  → Pilih budak untuk diculik         ║
 ║   • 🔮 Dukun     → Intip identitas 1 pemain          ║
 ║   • 👴 Kolot     → Lindungi 1 pemain                 ║
@@ -102,7 +102,7 @@ Dalam kepercayaan masyarakat Sunda, Sanekala adalah makhluk gaib yang berkeliara
 ║   • 👦 Budak     → Berdoa di dalam rumah...          ║
 ║                          ↓                           ║
 ║   🌙  MALAM (15 detik) — Kaayaan Lembur              ║
-║   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━   ║
+║   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    ║
 ║   • Pengumuman: siapa yang diculik / selamat         ║
 ║   • Suasana mencekam menunggu siang                  ║
 ║                          ↓                           ║
@@ -415,11 +415,14 @@ DB_PORT     = (dari MySQL Railway)
 
 | Nama | NIM | Role |
 |------|-----|------|
-| Hanadza | — | Full Stack Developer |
+| Muhammad Rifki Yusria Hatta | 247006111065 | Q&A, Tester and Documentation |
+| Aditya Ihsan Maulana | 247006111069 | Frontend Developer |
+| Yasraf Syifa Maulana | 247006111070 | Backend Develoer |
+| Fadhel Mohammad Syarushiam | 247006111074 | Q&A, Tester and Dokumentation |
 
 **Mata Kuliah:** Pemrograman Web  
 **Program Studi:** S1 Informatika  
-**Semester:** 4 — 2025
+**Semester:** 4 — 2026
 
 </div>
 
@@ -436,20 +439,11 @@ DB_PORT     = (dari MySQL Railway)
 
 ---
 
-## 📝 Lisensi
-
-```
-MIT License
-Copyright (c) 2025 Hanadza
-```
-
----
-
 <div align="center">
 
 Dibuat dengan ❤️ untuk Tugas Mata Kuliah Pemrograman Web
 
-📚 S1 Informatika — Semester 4 — 2025
+📚 S1 Informatika — Semester 4 — 2026
 
 👹 *"Balik ka imah sateuacan senja tiba..."* 👹
 
